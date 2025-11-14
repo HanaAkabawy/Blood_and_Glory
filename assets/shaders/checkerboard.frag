@@ -12,5 +12,15 @@ uniform int size = 32;
 uniform vec3 colors[2];
 
 void main(){
-    frag_color = vec4(colors[0], 1.0);
+    // Get the pixel coordinates
+    ivec2 pixel = ivec2(floor(gl_FragCoord.xy));
+    
+    // Divide by size to get tile coordinates
+    ivec2 tile = pixel / size;
+    
+    // Calculate checkerboard pattern: sum of tile coordinates
+    // If even, use colors[0], if odd use colors[1]
+    int index = (tile.x + tile.y) % 2;
+    
+    frag_color = vec4(colors[index], 1.0);
 }
