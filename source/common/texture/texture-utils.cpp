@@ -9,7 +9,24 @@ our::Texture2D* our::texture_utils::empty(GLenum format, glm::ivec2 size){
     our::Texture2D* texture = new our::Texture2D();
     //TODO: (Req 11) Finish this function to create an empty texture with the given size and format
     texture->bind();
-    glTexImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    // Determine the pixel format based on the internal format
+    GLenum pixelFormat = GL_RGBA;
+    GLenum pixelType = GL_UNSIGNED_BYTE;
+    // Check if this is a depth format
+    if(format == GL_DEPTH_COMPONENT24){
+        pixelFormat = GL_DEPTH_COMPONENT;
+        pixelType = GL_UNSIGNED_INT;
+    } else if(format == GL_DEPTH_COMPONENT16){
+        pixelFormat = GL_DEPTH_COMPONENT;
+        pixelType = GL_UNSIGNED_SHORT;
+    } else if(format == GL_DEPTH_COMPONENT){
+        pixelFormat = GL_DEPTH_COMPONENT;
+        pixelType = GL_UNSIGNED_BYTE;
+    } else if(format == GL_RGBA8 || format == GL_RGBA){
+        pixelFormat = GL_RGBA;
+        pixelType = GL_UNSIGNED_BYTE;
+    }
+    glTexImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, pixelFormat, pixelType, nullptr);
     return texture;
 }
 
