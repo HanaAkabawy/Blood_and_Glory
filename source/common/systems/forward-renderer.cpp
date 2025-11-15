@@ -1,6 +1,7 @@
 #include "forward-renderer.hpp"
 #include "../mesh/mesh-utils.hpp"
 #include "../texture/texture-utils.hpp"
+#include <iostream>
 
 namespace our {
 
@@ -29,16 +30,22 @@ namespace our {
             // Face culling should be enabled but cull front faces (we're inside the sphere)
             skyPipelineState.faceCulling.enabled = true;
             skyPipelineState.faceCulling.culledFace = GL_FRONT;
+            skyPipelineState.faceCulling.frontFace = GL_CCW;
             
             // Load the sky texture (note that we don't need mipmaps since we want to avoid any unnecessary blurring while rendering the sky)
             std::string skyTextureFile = config.value<std::string>("sky", "");
             Texture2D* skyTexture = texture_utils::loadImage(skyTextureFile, false);
+            if(skyTexture == nullptr){
+                std::cerr << "Failed to load sky texture: " << skyTextureFile << std::endl;
+                return;
+            }
 
             // Setup a sampler for the sky 
             Sampler* skySampler = new Sampler();
             skySampler->set(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             skySampler->set(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            skySampler->set(GL_TEXTURE_WRAP_S, GL_REPEAT);
+            // Use mirrored repeat for S to handle inside viewing of sphere
+            skySampler->set(GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
             skySampler->set(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
             // Combine all the aforementioned objects (except the mesh) into a material 

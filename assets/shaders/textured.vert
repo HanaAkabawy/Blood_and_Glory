@@ -15,5 +15,7 @@ void main(){
     //TODO: (Req 7) Change the next line to apply the transformation matrix
     gl_Position = transform * vec4(position, 1.0);
     vs_out.color = color;
+    // For sky spheres viewed from inside, we need to flip the U coordinate
+    // But we'll handle this via the sampler wrap mode instead
     vs_out.tex_coord = tex_coord;
 }
