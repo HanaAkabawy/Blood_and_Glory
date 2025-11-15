@@ -222,14 +222,18 @@ namespace our {
             
             //TODO: (Req 10) We want the sky to be drawn behind everything (in NDC space, z=1)
             // We can acheive the is by multiplying by an extra matrix after the projection but what values should we put in it?
-            // To ensure z=1 in NDC, we need to scale the z to 0 and translate it to 1
-            // This is done by modifying the z component: z' = 0*z + 1*w = w
-            // So the matrix should transform (x, y, z, w) to (x, y, w, w)
+            // To ensure z=1 in NDC, we need to make z' = w' so that z'/w' = 1
+            // The matrix should transform (x, y, z, w) to (x, y, w, w)
+            // In column-major notation (GLM default):
+            // Column 0: (1, 0, 0, 0) - x stays as x
+            // Column 1: (0, 1, 0, 0) - y stays as y
+            // Column 2: (0, 0, 0, 0) - z is ignored (we'll use w instead)
+            // Column 3: (0, 0, 1, 1) - both z and w become w
             glm::mat4 alwaysBehindTransform = glm::mat4(
                 1.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 1.0f, 0.0f, 0.0f,
-                0.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 1.0f, 0.0f
+                0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 1.0f, 1.0f
             );
             //TODO: (Req 10) set the "transform" uniform
             glm::mat4 skyTransform = alwaysBehindTransform * P * V * skyModel;
