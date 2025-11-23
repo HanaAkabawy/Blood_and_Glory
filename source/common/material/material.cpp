@@ -50,6 +50,7 @@ namespace our {
         glActiveTexture(GL_TEXTURE0);
         texture->bind();
         // Bind sampler to texture unit 0
+        if(sampler)
         sampler->bind(0);
         // Send texture unit index to shader
         shader->set("tex", 0);
