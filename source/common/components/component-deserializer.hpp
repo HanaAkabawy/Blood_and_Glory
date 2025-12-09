@@ -1,5 +1,5 @@
 #pragma once
-
+#include "light.hpp"
 #include "../ecs/entity.hpp"
 #include "camera.hpp"
 #include "mesh-renderer.hpp"
@@ -22,6 +22,8 @@ namespace our {
             component = entity->addComponent<MovementComponent>();
         } else if (type == MeshRendererComponent::getID()) {
             component = entity->addComponent<MeshRendererComponent>();
+        } else if (type == LightComponent::getID()){
+            component = entity->addComponent<LightComponent>();
         }
         if(component) component->deserialize(data);
     }
