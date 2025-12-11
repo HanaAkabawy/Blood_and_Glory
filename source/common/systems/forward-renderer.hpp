@@ -8,6 +8,7 @@
 #include <glad/gl.h>
 #include <vector>
 #include <algorithm>
+#include <string>
 
 namespace our
 {
@@ -40,15 +41,21 @@ namespace our
         GLuint postprocessFrameBuffer, postProcessVertexArray;
         Texture2D *colorTarget, *depthTarget;
         TexturedMaterial* postprocessMaterial;
+        bool postprocessEnabled = true;
     public:
         // Initialize the renderer including the sky and the Postprocessing objects.
         // windowSize is the width & height of the window (in pixels).
         void initialize(glm::ivec2 windowSize, const nlohmann::json& config);
         // Clean up the renderer
         void destroy();
+
         // This function should be called every frame to draw the given world
         void render(World* world);
 
+        // Change the fragment shader used for postprocessing. An empty path disables postprocessing.
+        void setPostprocessShader(const std::string& fragmentPath);
+        // Enable or disable postprocessing without changing the shader.
+        void setPostprocessEnabled(bool enabled);
 
     };
 

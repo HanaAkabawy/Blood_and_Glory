@@ -190,8 +190,8 @@ namespace our {
         glDepthMask(GL_TRUE);
         
 
-        // If there is a postprocess material, bind the framebuffer
-        if(postprocessMaterial){
+        // If there is a postprocess material and it is enabled, bind the framebuffer
+        if(postprocessMaterial && postprocessEnabled){
             //TODO: (Req 11) bind the framebuffer
             glBindFramebuffer(GL_FRAMEBUFFER, postprocessFrameBuffer);
             
@@ -253,8 +253,8 @@ namespace our {
         }
         
 
-        // If there is a postprocess material, apply postprocessing
-        if(postprocessMaterial){
+        // If there is a postprocess material and it is enabled, apply postprocessing
+        if(postprocessMaterial && postprocessEnabled){
             //TODO: (Req 11) Return to the default framebuffer
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             
@@ -266,6 +266,27 @@ namespace our {
             glBindVertexArray(0);
             
         }
+    }
+
+    void ForwardRenderer::setPostprocessShader(const std::string& fragmentPath){
+        if(!postprocessMaterial) return;
+        // Replace the shader program. Delete the old shader program if exists.
+        if(postprocessMaterial->shader) delete postprocessMaterial->shader;
+        if(fragmentPath.empty()){
+            postprocessMaterial->shader = nullptr;
+            postprocessEnabled = false;
+            return;
+        }
+        ShaderProgram* postprocessShader = new ShaderProgram();
+        postprocessShader->attach("assets/shaders/fullscreen.vert", GL_VERTEX_SHADER);
+        postprocessShader->attach(fragmentPath, GL_FRAGMENT_SHADER);
+        postprocessShader->link();
+        postprocessMaterial->shader = postprocessShader;
+        postprocessEnabled = true;
+    }
+
+    void ForwardRenderer::setPostprocessEnabled(bool enabled){
+        postprocessEnabled = enabled;
     }
 
 }

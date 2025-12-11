@@ -12,6 +12,10 @@
 #include <systems/enemy-ai.hpp>
 #include <systems/movement.hpp>
 #include <asset-loader.hpp>
+#include <components/click-attack.hpp>
+
+#include <vector>
+#include <string>
 
 // This state shows how to use the ECS framework and deserialization.
 class Playstate: public our::State {
@@ -27,6 +31,8 @@ class Playstate: public our::State {
     our::MovementSystem movementSystem;
     
     our::Entity* player = nullptr;  // Reference to the player entity
+    int postprocessIndex = 0;
+    std::vector<std::string> postprocessShaders;
 
     void onInitialize() override {
         // First of all, we get the scene configuration from the app config
@@ -55,7 +61,16 @@ class Playstate: public our::State {
         
         // Initialize combat system with player reference
         if(player) {
-            combatSystem.enter(getApp(), player, 3.0f, 25.0f, 0.5f);
+            // If the player has a ClickAttackComponent, use its parameters to initialize the combat system
+            float attackRange = 3.0f;
+            float attackDamage = 25.0f;
+            float attackCooldown = 0.5f;
+            if(auto click = player->getComponent<our::ClickAttackComponent>()){
+                attackRange = click->range;
+                attackDamage = click->damage;
+                attackCooldown = click->attackCooldown;
+            }
+            combatSystem.enter(getApp(), player, attackRange, attackDamage, attackCooldown);
             
             // Initialize enemy AI system with player reference
             enemyAISystem.setPlayer(player);
@@ -76,6 +91,12 @@ class Playstate: public our::State {
         // Then we initialize the renderer
         auto size = getApp()->getFrameBufferSize();
         renderer.initialize(size, config["renderer"]);
+        // Setup postprocess shader cycling (T key)
+        postprocessShaders = {"", "assets/shaders/postprocess/sepia.frag", "assets/shaders/postprocess/vignette.frag"};
+        std::string initial = config["renderer"].value<std::string>("postprocess", "");
+        postprocessIndex = 0;
+        for(size_t i = 0; i < postprocessShaders.size(); ++i) if(postprocessShaders[i] == initial) postprocessIndex = (int)i;
+        renderer.setPostprocessShader(postprocessShaders[postprocessIndex]);
     }
 
     void onDraw(double deltaTime) override {
@@ -110,6 +131,13 @@ class Playstate: public our::State {
         if(keyboard.justPressed(GLFW_KEY_ESCAPE)){
             // If the escape key is pressed in this frame, go to the menu state
             getApp()->changeState("menu");
+        }
+
+        // Cycle postprocessing effects with T
+        if(keyboard.justPressed(GLFW_KEY_T)){
+            postprocessIndex = (postprocessIndex + 1) % (int)postprocessShaders.size();
+            renderer.setPostprocessShader(postprocessShaders[postprocessIndex]);
+            std::cout << "[Renderer] Postprocess set to: " << (postprocessShaders[postprocessIndex].empty() ? "OFF" : postprocessShaders[postprocessIndex]) << std::endl;
         }
     }
 

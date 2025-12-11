@@ -2,6 +2,7 @@
 
 #include "../ecs/component.hpp"
 #include <glm/glm.hpp>
+#include <glm/gtx/norm.hpp> 
 
 namespace our {
 
@@ -9,7 +10,8 @@ namespace our {
     enum class EnemyState {
         IDLE,    // Standing still or patrolling
         CHASE,   // Following the player
-        ATTACK   // Attacking the player
+        ATTACK,  // Attacking the player
+        STUNNED  // Temporarily disabled (cannot move or attack)
     };
 
     // This component adds AI behavior to an enemy entity
@@ -37,6 +39,17 @@ namespace our {
         glm::vec3 patrolPoint = {0, 0, 0}; // Point to patrol to (if any)
         bool hasPatrolPoint = false;
 
+        // Control & Tracking
+        
+        // Tracking: Stores the last known position of the player (useful for SEARCH behavior)
+        glm::vec3 lastKnownPlayerPosition = {0, 0, 0};
+        
+        // Control: Determines if the enemy can currently act (move or attack)
+        bool canAct = true; 
+        
+        // Stun Timer: Duration for the STUNNED state (useful for status effects)
+        float stunDuration = 0.0f;
+        
         // The ID of this component type is "Enemy AI"
         static std::string getID() { return "Enemy AI"; }
 
