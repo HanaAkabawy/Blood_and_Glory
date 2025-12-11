@@ -24,15 +24,38 @@ uniform vec2 light_cone;
 void main(){
     vec4 base_color = texture(tex, fs_in.tex_coord)*tint;
     vec3 normal = normalize(fs_in.world_normal);
-    vec3 light_dir = normalize(-light_direction); //for lighting math we need the direction FROM THE SURFACE TO THE LIGHT, so we reverse the direction
+    float attenuation =1.0;
+    vec3 light_dir;
+    if(light_type==0) //directional
+    {
+    light_dir = normalize(-light_direction); //for lighting math we need the direction FROM THE SURFACE TO THE LIGHT, so we reverse the direction
+    } else if(light_type==1) //POINT
+    {
+        vec3 to_light = light_position - fs_in.world_position;
+        float distance = length(to_light);
+        light_dir = normalize(to_light);
+        attenuation = 1.0/(light_attenuation.x+light_attenuation.y*distance + light_attenuation.z*distance*distance);
+    } else if(light_type==2){
+                vec3 to_light = light_position - fs_in.world_position;
+        float distance = length(to_light);
+        light_dir = normalize(to_light);
+        attenuation = 1.0/(light_attenuation.x+light_attenuation.y*distance + light_attenuation.z*distance*distance);
+        vec3 spot_dir = normalize(-light_direction);
+        float cos_angle = dot(light_dir, spot_dir);
+        float cos_inner = cos(light_cone.x);
+        float cos_outer = cos(light_cone.y);
+// Smooth falloff between inner and outer cone
+        float spot_effect = smoothstep(cos_outer, cos_inner, cos_angle);
+        attenuation *= spot_effect;
+    }
     vec3 ambient = ambient_light * base_color.rgb;
     float diff = max(dot(normal, light_dir), 0.0);
-    vec3 diffuse =  diff*light_color*base_color.rgb;
+    vec3 diffuse =  attenuation* diff*light_color*base_color.rgb;
     vec3 view_dir = normalize(camera_position - fs_in.world_position);
     vec3 halfway_dir = normalize(light_dir + view_dir);
     float spec = pow(max(dot(normal, halfway_dir), 0.0), shininess);
-    vec3 specular = spec * light_color;
-    
+    vec3 specular = attenuation* spec * light_color;
+                                  
     // 7. Combine
     vec3 result = ambient + diffuse + specular;
     

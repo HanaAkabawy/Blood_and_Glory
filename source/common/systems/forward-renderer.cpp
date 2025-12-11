@@ -226,12 +226,32 @@ namespace our {
             if(!lights.empty()){
                 for(auto light:lights){
                     if(light->lightType == LightType::DIRECTIONAL){
+                        command.material->shader->set("light_type", 0);
                         glm::mat4 lightMatrix = light->getOwner()->getLocalToWorldMatrix();
                         glm::vec3 lightDir = glm::normalize(glm::vec3(lightMatrix*glm::vec4(0,0,-1,0)));
                         command.material->shader->set("light_direction", lightDir);
                         command.material->shader->set("light_color", light->color);
                         break;
-                    }
+                    } else if(light->lightType == LightType::POINT){
+            command.material->shader->set("light_type", 1);
+        // Get light position from entity transform
+            glm::vec3 lightPos = glm::vec3(light->getOwner()->getLocalToWorldMatrix() * glm::vec4(0,0,0,1));
+            command.material->shader->set("light_position", lightPos);
+            command.material->shader->set("light_color", light->color);
+            command.material->shader->set("light_attenuation", light->attenuation);
+            break;
+} else if(light->lightType == LightType::SPOT){
+    command.material->shader->set("light_type",2);
+    glm::mat4 lightMatrix = light->getOwner()->getLocalToWorldMatrix();
+                                glm::vec3 lightPos = glm::vec3(lightMatrix * glm::vec4(0,0,0,1));
+                                glm::vec3 lightDir = glm::normalize(glm::vec3(lightMatrix * glm::vec4(0, 0, -1, 0)));
+            command.material->shader->set("light_position", lightPos);
+            command.material->shader->set("light_direction",lightDir);
+            command.material->shader->set("light_color", light->color);
+            command.material->shader->set("light_attenuation", light->attenuation);
+            command.material->shader->set("light_cone", light->cone);
+            break;
+                }
       
                 }
             }
@@ -280,13 +300,17 @@ namespace our {
             command.material->setup();
             glm::mat4 transform = VP * command.localToWorld;
             command.material->shader->set("transform", transform);
-                        command.material->shader->set("model", command.localToWorld);
+            command.material->shader->set("model", command.localToWorld);
             command.material->shader->set("view_projection", VP);
             command.material->shader->set("model_inverse_transpose",glm::transpose(glm::inverse(command.localToWorld)));
             command.material->shader->set("camera_position", cameraPosition);
+            command.material->shader->set("light_type", 0);  // ADD THIS!
+command.material->shader->set("light_direction", glm::vec3(0.0f, -1.0f, -1.0f));
+command.material->shader->set("light_color", glm::vec3(1.0f, 1.0f, 1.0f));
             if(!lights.empty()){
                 for(auto light:lights){
                     if(light->lightType == LightType::DIRECTIONAL){
+                        command.material->shader->set("light_type", 0);
                         glm::mat4 lightMatrix = light->getOwner()->getLocalToWorldMatrix();
                         glm::vec3 lightDir = glm::normalize(glm::vec3(lightMatrix*glm::vec4(0,0,-1,0)));
                         command.material->shader->set("light_direction", lightDir);
@@ -294,18 +318,23 @@ namespace our {
                         break;
                     } else if(light->lightType == LightType::POINT){
             command.material->shader->set("light_type", 1);
-    
         // Get light position from entity transform
             glm::vec3 lightPos = glm::vec3(light->getOwner()->getLocalToWorldMatrix() * glm::vec4(0,0,0,1));
             command.material->shader->set("light_position", lightPos);
             command.material->shader->set("light_color", light->color);
             command.material->shader->set("light_attenuation", light->attenuation);
+            break;
 } else if(light->lightType == LightType::SPOT){
-                                glm::vec3 lightPos = glm::vec3(light->getOwner()->getLocalToWorldMatrix() * glm::vec4(0,0,0,1));
+    command.material->shader->set("light_type",2);
+    glm::mat4 lightMatrix = light->getOwner()->getLocalToWorldMatrix();
+                                glm::vec3 lightPos = glm::vec3(lightMatrix * glm::vec4(0,0,0,1));
+                                glm::vec3 lightDir = glm::normalize(glm::vec3(lightMatrix * glm::vec4(0, 0, -1, 0)));
             command.material->shader->set("light_position", lightPos);
+            command.material->shader->set("light_direction",lightDir);
             command.material->shader->set("light_color", light->color);
             command.material->shader->set("light_attenuation", light->attenuation);
-            command.material->shader->set("cone", light->cone);
+            command.material->shader->set("light_cone", light->cone);
+            break;
                 }
       
                 } 
