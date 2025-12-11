@@ -94,6 +94,8 @@ set(COMMON_SOURCES
         source/common/components/enemy-ai.cpp
         source/common/components/movement.hpp
         source/common/components/movement.cpp
+        source/common/components/click-attack.hpp
+        source/common/components/click-attack.cpp
         source/common/components/component-deserializer.hpp
 
         source/common/systems/forward-renderer.hpp

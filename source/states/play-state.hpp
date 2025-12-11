@@ -13,6 +13,10 @@
 #include <systems/movement.hpp>
 #include <asset-loader.hpp>
 #include <components/click-attack.hpp>
+#include <components/health.hpp>
+#include <components/enemy-ai.hpp>
+
+#include <imgui.h>
 
 #include <vector>
 #include <string>
@@ -99,6 +103,11 @@ class Playstate: public our::State {
         renderer.setPostprocessShader(postprocessShaders[postprocessIndex]);
     }
 
+    void onImmediateGui() override {
+        // Draw health UI using ImGui
+        drawHealthUI();
+    }
+
     void onDraw(double deltaTime) override {
         // Here, we just run a bunch of systems to control the world logic
         
@@ -139,6 +148,99 @@ class Playstate: public our::State {
             renderer.setPostprocessShader(postprocessShaders[postprocessIndex]);
             std::cout << "[Renderer] Postprocess set to: " << (postprocessShaders[postprocessIndex].empty() ? "OFF" : postprocessShaders[postprocessIndex]) << std::endl;
         }
+    }
+
+    void drawHealthUI() {
+        // Set up ImGui window for health display
+        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(300, 0), ImGuiCond_Always);
+        ImGui::Begin("Health Status", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+        // Display player health
+        if (player) {
+            auto playerHealth = player->getComponent<our::HealthComponent>();
+            if (playerHealth) {
+                ImGui::Text("PLAYER HEALTH");
+                float healthPercent = playerHealth->currentHealth / playerHealth->maxHealth;
+                
+                // Color the bar based on health percentage
+                ImVec4 barColor;
+                if (healthPercent > 0.6f) {
+                    barColor = ImVec4(0.0f, 0.8f, 0.0f, 1.0f); // Green
+                } else if (healthPercent > 0.3f) {
+                    barColor = ImVec4(0.9f, 0.7f, 0.0f, 1.0f); // Yellow
+                } else {
+                    barColor = ImVec4(0.9f, 0.0f, 0.0f, 1.0f); // Red
+                }
+                
+                ImGui::PushStyleColor(ImGuiCol_PlotHistogram, barColor);
+                ImGui::ProgressBar(healthPercent, ImVec2(0.0f, 0.0f), "");
+                ImGui::PopStyleColor();
+                ImGui::SameLine(0.0f, 10.0f);
+                ImGui::Text("%.0f / %.0f", playerHealth->currentHealth, playerHealth->maxHealth);
+                
+                if (!playerHealth->isAlive) {
+                    ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "PLAYER DEFEATED!");
+                }
+            }
+        }
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        // Display enemy health
+        ImGui::Text("ENEMIES");
+        int enemyCount = 0;
+        for (auto entity : world.getEntities()) {
+            auto enemyAI = entity->getComponent<our::EnemyAIComponent>();
+            if (enemyAI) {
+                auto enemyHealth = entity->getComponent<our::HealthComponent>();
+                if (enemyHealth && enemyHealth->isAlive) {
+                    enemyCount++;
+                    ImGui::PushID(entity);
+                    
+                    ImGui::Text("Enemy #%d", enemyCount);
+                    float healthPercent = enemyHealth->currentHealth / enemyHealth->maxHealth;
+                    
+                    // Color the bar based on health percentage
+                    ImVec4 barColor;
+                    if (healthPercent > 0.6f) {
+                        barColor = ImVec4(0.8f, 0.0f, 0.0f, 1.0f); // Red for enemies
+                    } else if (healthPercent > 0.3f) {
+                        barColor = ImVec4(0.9f, 0.3f, 0.0f, 1.0f); // Orange
+                    } else {
+                        barColor = ImVec4(0.5f, 0.0f, 0.0f, 1.0f); // Dark red
+                    }
+                    
+                    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, barColor);
+                    ImGui::ProgressBar(healthPercent, ImVec2(0.0f, 0.0f), "");
+                    ImGui::PopStyleColor();
+                    ImGui::SameLine(0.0f, 10.0f);
+                    ImGui::Text("%.0f / %.0f", enemyHealth->currentHealth, enemyHealth->maxHealth);
+                    
+                    // Show enemy state
+                    const char* stateText = "IDLE";
+                    switch(enemyAI->currentState) {
+                        case our::EnemyState::IDLE: stateText = "IDLE"; break;
+                        case our::EnemyState::CHASE: stateText = "CHASING"; break;
+                        case our::EnemyState::ATTACK: stateText = "ATTACKING"; break;
+                        case our::EnemyState::STUNNED: stateText = "STUNNED"; break;
+                    }
+                    ImGui::SameLine();
+                    ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "[%s]", stateText);
+                    
+                    ImGui::PopID();
+                    ImGui::Spacing();
+                }
+            }
+        }
+
+        if (enemyCount == 0) {
+            ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "No enemies alive");
+        }
+
+        ImGui::End();
     }
 
     void onDestroy() override {

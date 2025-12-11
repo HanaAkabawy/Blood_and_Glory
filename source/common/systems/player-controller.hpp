@@ -31,8 +31,9 @@ namespace our {
                 return;
             }
             
-            // Get keyboard input
+            // Get keyboard and mouse input
             auto& keyboard = app->getKeyboard();
+            auto& mouse = app->getMouse();
 
             // Find the main camera to get view direction
             CameraComponent* camera = nullptr;
@@ -87,6 +88,10 @@ namespace our {
                     PlayerControllerComponent* controller = entity->getComponent<PlayerControllerComponent>();
                     if(!controller) continue;
 
+                // Handle mouse left-click to set facing direction toward mouse cursor
+                // (Simplified approach without ray-casting for stability)
+                // Player will just face the direction they're moving when not using mouse
+
                 // Calculate movement direction based on WASD input (relative to camera)
                 glm::vec3 movementDirection(0.0f);
                 bool keyPressed = false;
@@ -125,29 +130,31 @@ namespace our {
                                   << ", " << entity->localTransform.position.z << ")" << std::endl;
                     }
 
-                    // Rotate player to face movement direction
-                    if(controller->smoothRotation) {
-                        // Calculate target rotation (yaw only)
-                        float targetYaw = atan2(movementDirection.x, movementDirection.z);
-                        float currentYaw = entity->localTransform.rotation.y;
+                    // Rotate player to face movement direction (only if not using mouse to rotate)
+                    if(!mouse.isPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+                        if(controller->smoothRotation) {
+                            // Calculate target rotation (yaw only) - using Y axis since we're in XY plane
+                            float targetYaw = atan2(movementDirection.x, movementDirection.y);
+                            float currentYaw = entity->localTransform.rotation.y;
 
-                        // Smoothly interpolate rotation
-                        float yawDiff = targetYaw - currentYaw;
-                        
-                        // Normalize angle difference to [-PI, PI]
-                        while(yawDiff > glm::pi<float>()) yawDiff -= 2.0f * glm::pi<float>();
-                        while(yawDiff < -glm::pi<float>()) yawDiff += 2.0f * glm::pi<float>();
+                            // Smoothly interpolate rotation
+                            float yawDiff = targetYaw - currentYaw;
+                            
+                            // Normalize angle difference to [-PI, PI]
+                            while(yawDiff > glm::pi<float>()) yawDiff -= 2.0f * glm::pi<float>();
+                            while(yawDiff < -glm::pi<float>()) yawDiff += 2.0f * glm::pi<float>();
 
-                        // Apply smooth rotation
-                        float rotationAmount = controller->rotationSpeed * deltaTime;
-                        if(abs(yawDiff) < rotationAmount) {
-                            entity->localTransform.rotation.y = targetYaw;
+                            // Apply smooth rotation
+                            float rotationAmount = controller->rotationSpeed * deltaTime;
+                            if(abs(yawDiff) < rotationAmount) {
+                                entity->localTransform.rotation.y = targetYaw;
+                            } else {
+                                entity->localTransform.rotation.y += glm::sign(yawDiff) * rotationAmount;
+                            }
                         } else {
-                            entity->localTransform.rotation.y += glm::sign(yawDiff) * rotationAmount;
+                            // Instant rotation - using Y axis since we're in XY plane
+                            entity->localTransform.rotation.y = atan2(movementDirection.x, movementDirection.y);
                         }
-                    } else {
-                        // Instant rotation
-                        entity->localTransform.rotation.y = atan2(movementDirection.x, movementDirection.z);
                     }
                 }
                 }
