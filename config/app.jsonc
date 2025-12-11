@@ -23,6 +23,10 @@
                 "textured":{
                     "vs":"assets/shaders/textured.vert",
                     "fs":"assets/shaders/textured.frag"
+                },
+                "lit":{
+                    "vs": "assets/shaders/lit.vert",
+                    "fs": "assets/shaders/lit.frag"
                 }
             },
             "textures":{
@@ -57,6 +61,22 @@
                         }
                     },
                     "tint": [0.45, 0.4, 0.5, 1]
+                },
+                "lit-monkey":{
+                    "type": "lit",
+                    "shader": "lit",
+                    "pipelineState": {
+                        "faceCulling":{
+                            "enabled": false
+                        },
+                        "depthTesting":{
+                            "enabled": true
+                        }
+                    },
+                    "texture": "monkey",
+                    "sampler": "default",
+                    "tint": [1.0,1.0,1.0,1.0],
+                    "shininess": 32.0
                 },
                 "glass":{
                     "type": "textured",
@@ -154,12 +174,36 @@
                 ]
             },
             {
+    "name": "sun",
+    "position": [0, 10, 0],
+    "rotation": [-45, 0, 0],
+    "components": [
+        {
+            "type": "Light",
+            "lightType": "directional",
+            "color": [1.0, 1.0, 0.9]
+        }
+    ]
+            },
+            {
+    "name": "torch",
+    "position": [2, 3, 0],
+    "components": [
+        {
+            "type": "Light",
+            "lightType": "point",
+            "color": [1.0, 0.6, 0.2],
+            "attenuation": [1.0, 0.09, 0.032]
+        }
+    ]
+},
+            {
                 "rotation": [-45, 0, 0],
                 "components": [
                     {
                         "type": "Mesh Renderer",
                         "mesh": "monkey",
-                        "material": "monkey"
+                        "material": "lit-monkey"
                     },
                     {
                         "type": "Movement",

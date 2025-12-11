@@ -55,6 +55,40 @@ namespace our {
         // Send texture unit index to shader
         shader->set("tex", 0);
     }
+    void LitMaterial::setup() const{
+        TexturedMaterial::setup();
+        shader->set("shininess", shininess);
+        if(specularMap){
+            glActiveTexture(GL_TEXTURE1);
+            specularMap->bind();
+            shader->set("specular_tex", 1);
+            shader->set("has_specular_map", true);
+        }else
+        {
+            shader->set("has_specular_map", false);
+        }
+     if(emissiveMap) {
+        glActiveTexture(GL_TEXTURE2);
+        emissiveMap->bind();
+        shader->set("emissive_tex", 2);
+        shader->set("has_emissive_map", true);
+    } else {
+        shader->set("has_emissive_map", false);
+    }
+    }
+    void LitMaterial::deserialize(const nlohmann::json& data){
+        TexturedMaterial::deserialize(data);
+        if(!data.is_object()){
+            return;
+        }
+        shininess = data.value("shininess", 32.0f);
+        if(data.contains("specularMap")){
+            specularMap = AssetLoader<Texture2D>::get(data["specularMap"].get<std::string>());
+        }
+        if(data.contains("emissiveMap")){
+    emissiveMap = AssetLoader<Texture2D>::get(data["emissiveMap"].get<std::string>());
+}
+    }
 
     // This function read the material data from a json object
     void TexturedMaterial::deserialize(const nlohmann::json& data){
