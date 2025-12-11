@@ -191,8 +191,10 @@ int our::Application::run(int run_for_frames) {
     std::cout << "VERSION         : " << glGetString(GL_VERSION) << std::endl;
     std::cout << "GLSL VERSION    : " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
-#if defined(ENABLE_OPENGL_DEBUG_MESSAGES)
+#if defined(ENABLE_OPENGL_DEBUG_MESSAGES) && !defined(__APPLE__)
     // if we have OpenGL debug messages enabled, set the message callback
+    // Note: Skips debug setup on macOS to prevent segmentation fault
+    // macOS OpenGL runs on Metal backend which doesn't fully support debug callbacks
     glDebugMessageCallback(opengl_callback, nullptr);
     // Then enable debug output
     glEnable(GL_DEBUG_OUTPUT);
@@ -200,6 +202,8 @@ int our::Application::run(int run_for_frames) {
     // This will make sure that OpenGL and the main thread are synchronized such that message callback is called as soon
     // as the command causing it is called. This is useful for debugging but slows down the code execution.
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+#elif defined(ENABLE_OPENGL_DEBUG_MESSAGES) && defined(__APPLE__)
+    std::cout << "Note: OpenGL debug messages are disabled on macOS to prevent segmentation fault." << std::endl;
 #endif
 
     setupCallbacks();

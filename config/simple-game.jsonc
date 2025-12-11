@@ -1,0 +1,134 @@
+{
+    "start-scene": "play",
+    "window": {
+        "title": "Blood and Glory - Simple Test",
+        "size": {
+            "width": 1280,
+            "height": 720
+        },
+        "fullscreen": false
+    },
+    "scene": {
+        "renderer": {
+            "sky": "assets/textures/sky.jpg"
+        },
+        "assets": {
+            "shaders": {
+                "tinted": {
+                    "vs": "assets/shaders/tinted.vert",
+                    "fs": "assets/shaders/tinted.frag"
+                }
+            },
+            "meshes": {
+                "cube": "assets/models/cube.obj",
+                "sphere": "assets/models/sphere.obj"
+            },
+            "materials": {
+                "blue": {
+                    "type": "tinted",
+                    "shader": "tinted",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": false
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "tint": [0.2, 0.6, 1.0, 1.0]
+                },
+                "red": {
+                    "type": "tinted",
+                    "shader": "tinted",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": false
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "tint": [1.0, 0.2, 0.2, 1.0]
+                }
+            }
+        },
+        "world": [
+            {
+                "position": [0, 0, 10],
+                "components": [
+                    {
+                        "type": "Camera"
+                    },
+                    {
+                        "type": "Free Camera Controller"
+                    }
+                ]
+            },
+            {
+                "position": [0, 0, 0],
+                "scale": [2, 2, 2],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "sphere",
+                        "material": "blue"
+                    },
+                    {
+                        "type": "Player Controller",
+                        "movementSpeed": 5.0
+                    },
+                    {
+                        "type": "Health",
+                        "maxHealth": 100.0
+                    }
+                ]
+            },
+            {
+                "position": [5, 0, 0],
+                "scale": [2, 2, 2],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "sphere",
+                        "material": "red"
+                    },
+                    {
+                        "type": "Enemy AI",
+                        "detectionRange": 15.0,
+                        "moveSpeed": 3.0,
+                        "attackRange": 2.5,
+                        "attackDamage": 10.0
+                    },
+                    {
+                        "type": "Health",
+                        "maxHealth": 50.0,
+                        "destroyOnDeath": true
+                    }
+                ]
+            },
+            {
+                "position": [-5, 0, 0],
+                "scale": [2, 2, 2],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "sphere",
+                        "material": "red"
+                    },
+                    {
+                        "type": "Enemy AI",
+                        "detectionRange": 15.0,
+                        "moveSpeed": 3.0,
+                        "attackRange": 2.5,
+                        "attackDamage": 10.0
+                    },
+                    {
+                        "type": "Health",
+                        "maxHealth": 50.0,
+                        "destroyOnDeath": true
+                    }
+                ]
+            }
+        ]
+    }
+}

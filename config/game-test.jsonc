@@ -1,0 +1,315 @@
+{
+    "start-scene": "play",
+    "window": {
+        "title": "Blood and Glory - Test Arena",
+        "size": {
+            "width": 1280,
+            "height": 720
+        },
+        "fullscreen": false
+    },
+    "scene": {
+        "renderer": {
+            "sky": "assets/textures/sky.jpg",
+            "postprocess": "assets/shaders/postprocess/vignette.frag"
+        },
+        "assets": {
+            "shaders": {
+                "tinted": {
+                    "vs": "assets/shaders/tinted.vert",
+                    "fs": "assets/shaders/tinted.frag"
+                },
+                "textured": {
+                    "vs": "assets/shaders/textured.vert",
+                    "fs": "assets/shaders/textured.frag"
+                }
+            },
+            "textures": {
+                "grass": "assets/textures/grass_ground_d.jpg",
+                "wood": "assets/textures/wood.jpg"
+            },
+            "meshes": {
+                "cube": "assets/models/cube.obj",
+                "sphere": "assets/models/sphere.obj",
+                "plane": "assets/models/plane.obj"
+            },
+            "samplers": {
+                "default": {}
+            },
+            "materials": {
+                "ground": {
+                    "type": "textured",
+                    "shader": "textured",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": true
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "transparent": false,
+                    "texture": "grass",
+                    "sampler": "default",
+                    "tint": [1, 1, 1, 1]
+                },
+                "player": {
+                    "type": "tinted",
+                    "shader": "tinted",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": true
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "transparent": false,
+                    "tint": [0.2, 0.6, 1.0, 1.0]
+                },
+                "enemy": {
+                    "type": "tinted",
+                    "shader": "tinted",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": true
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "transparent": false,
+                    "tint": [1.0, 0.2, 0.2, 1.0]
+                },
+                "wall": {
+                    "type": "textured",
+                    "shader": "textured",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": true
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "transparent": false,
+                    "texture": "wood",
+                    "sampler": "default",
+                    "tint": [0.8, 0.8, 0.8, 1.0]
+                }
+            }
+        },
+        "world": [
+            {
+                "position": [0, 5, 15],
+                "components": [
+                    {
+                        "type": "Camera"
+                    },
+                    {
+                        "type": "Orbit Camera Controller",
+                        "distance": 15.0,
+                        "minDistance": 5.0,
+                        "maxDistance": 30.0,
+                        "zoomSensitivity": 1.5,
+                        "orbitSensitivity": 0.01,
+                        "pitch": 30.0,
+                        "yaw": 0.0
+                    }
+                ]
+            },
+            {
+                "position": [0, 1, 0],
+                "scale": [1.5, 1.5, 1.5],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "sphere",
+                        "material": "player"
+                    },
+                    {
+                        "type": "Player Controller",
+                        "movementSpeed": 5.0,
+                        "rotationSpeed": 10.0,
+                        "sprintMultiplier": 2.0
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 1.5,
+                        "isStatic": false,
+                        "canCollideWithWalls": true,
+                        "canCollideWithEnemies": true
+                    },
+                    {
+                        "type": "Health",
+                        "maxHealth": 100.0,
+                        "currentHealth": 100.0
+                    }
+                ]
+            },
+            {
+                "position": [0, -1, 0],
+                "scale": [50, 0.2, 50],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "cube",
+                        "material": "ground"
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 50.0,
+                        "isStatic": true
+                    }
+                ]
+            },
+            {
+                "position": [8, 1, 0],
+                "scale": [2, 2, 2],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "sphere",
+                        "material": "enemy"
+                    },
+                    {
+                        "type": "Enemy AI",
+                        "detectionRange": 15.0,
+                        "loseTargetRange": 20.0,
+                        "moveSpeed": 3.0,
+                        "attackRange": 2.5,
+                        "attackDamage": 10.0,
+                        "attackCooldown": 1.5
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 2.0,
+                        "isStatic": false,
+                        "canCollideWithWalls": true,
+                        "canCollideWithPlayer": true
+                    },
+                    {
+                        "type": "Health",
+                        "maxHealth": 50.0,
+                        "currentHealth": 50.0,
+                        "destroyOnDeath": true
+                    }
+                ]
+            },
+            {
+                "position": [-8, 1, 0],
+                "scale": [2, 2, 2],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "sphere",
+                        "material": "enemy"
+                    },
+                    {
+                        "type": "Enemy AI",
+                        "detectionRange": 12.0,
+                        "loseTargetRange": 18.0,
+                        "moveSpeed": 4.0,
+                        "attackRange": 2.0,
+                        "attackDamage": 15.0,
+                        "attackCooldown": 1.0
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 2.0,
+                        "isStatic": false,
+                        "canCollideWithWalls": true,
+                        "canCollideWithPlayer": true
+                    },
+                    {
+                        "type": "Health",
+                        "maxHealth": 75.0,
+                        "currentHealth": 75.0,
+                        "destroyOnDeath": true
+                    }
+                ]
+            },
+            {
+                "position": [6, 8, 0],
+                "scale": [2.5, 2.5, 2.5],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "sphere",
+                        "material": "enemy"
+                    },
+                    {
+                        "type": "Enemy AI",
+                        "detectionRange": 10.0,
+                        "loseTargetRange": 15.0,
+                        "moveSpeed": 2.5,
+                        "attackRange": 3.0,
+                        "attackDamage": 8.0,
+                        "attackCooldown": 2.0
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 2.5,
+                        "isStatic": false,
+                        "canCollideWithWalls": true,
+                        "canCollideWithPlayer": true
+                    },
+                    {
+                        "type": "Health",
+                        "maxHealth": 40.0,
+                        "currentHealth": 40.0,
+                        "destroyOnDeath": true
+                    }
+                ]
+            },
+            {
+                "position": [15, 2, 5],
+                "scale": [3, 5, 3],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "cube",
+                        "material": "wall"
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 4.0,
+                        "isStatic": true
+                    }
+                ]
+            },
+            {
+                "position": [-15, 2, -5],
+                "scale": [3, 5, 3],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "cube",
+                        "material": "wall"
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 4.0,
+                        "isStatic": true
+                    }
+                ]
+            },
+            {
+                "position": [5, 2, -10],
+                "scale": [8, 3, 2],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "cube",
+                        "material": "wall"
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 5.0,
+                        "isStatic": true
+                    }
+                ]
+            }
+        ]
+    }
+}

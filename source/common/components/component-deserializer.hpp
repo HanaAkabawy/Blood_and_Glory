@@ -4,6 +4,11 @@
 #include "camera.hpp"
 #include "mesh-renderer.hpp"
 #include "free-camera-controller.hpp"
+#include "orbit-camera-controller.hpp"
+#include "player-controller.hpp"
+#include "collision.hpp"
+#include "health.hpp"
+#include "enemy-ai.hpp"
 #include "movement.hpp"
 
 namespace our {
@@ -18,6 +23,16 @@ namespace our {
             component = entity->addComponent<CameraComponent>();
         } else if (type == FreeCameraControllerComponent::getID()) {
             component = entity->addComponent<FreeCameraControllerComponent>();
+        } else if (type == OrbitCameraControllerComponent::getID()) {
+            component = entity->addComponent<OrbitCameraControllerComponent>();
+        } else if (type == PlayerControllerComponent::getID()) {
+            component = entity->addComponent<PlayerControllerComponent>();
+        } else if (type == CollisionComponent::getID()) {
+            component = entity->addComponent<CollisionComponent>();
+        } else if (type == HealthComponent::getID()) {
+            component = entity->addComponent<HealthComponent>();
+        } else if (type == EnemyAIComponent::getID()) {
+            component = entity->addComponent<EnemyAIComponent>();
         } else if (type == MovementComponent::getID()) {
             component = entity->addComponent<MovementComponent>();
         } else if (type == MeshRendererComponent::getID()) {

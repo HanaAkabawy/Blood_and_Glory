@@ -82,6 +82,16 @@ set(COMMON_SOURCES
         source/common/components/mesh-renderer.cpp
         source/common/components/free-camera-controller.hpp
         source/common/components/free-camera-controller.cpp
+        source/common/components/orbit-camera-controller.hpp
+        source/common/components/orbit-camera-controller.cpp
+        source/common/components/player-controller.hpp
+        source/common/components/player-controller.cpp
+        source/common/components/collision.hpp
+        source/common/components/collision.cpp
+        source/common/components/health.hpp
+        source/common/components/health.cpp
+        source/common/components/enemy-ai.hpp
+        source/common/components/enemy-ai.cpp
         source/common/components/movement.hpp
         source/common/components/movement.cpp
         source/common/components/component-deserializer.hpp
@@ -89,6 +99,11 @@ set(COMMON_SOURCES
         source/common/systems/forward-renderer.hpp
         source/common/systems/forward-renderer.cpp
         source/common/systems/free-camera-controller.hpp
+        source/common/systems/orbit-camera-controller.hpp
+        source/common/systems/player-controller.hpp
+        source/common/systems/collision.hpp
+        source/common/systems/combat.hpp
+        source/common/systems/enemy-ai.hpp
         source/common/systems/movement.hpp
 )
 

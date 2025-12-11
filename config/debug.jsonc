@@ -1,0 +1,79 @@
+{
+    "start-scene": "game",
+    "window": {
+        "title": "Blood and Glory - Debug",
+        "size": {
+            "width": 1280,
+            "height": 720
+        },
+        "fullscreen": false
+    },
+    "scene": {
+        "renderer": {
+            "sky": "assets/textures/sky.jpg"
+        },
+        "assets": {
+            "shaders": {
+                "tinted": {
+                    "vs": "assets/shaders/tinted.vert",
+                    "fs": "assets/shaders/tinted.frag"
+                }
+            },
+            "meshes": {
+                "sphere": "assets/models/sphere.obj"
+            },
+            "materials": {
+                "red": {
+                    "type": "tinted",
+                    "shader": "tinted",
+                    "pipelineState": {},
+                    "transparent": false,
+                    "tint": [1.0, 0.0, 0.0, 1.0]
+                },
+                "blue": {
+                    "type": "tinted",
+                    "shader": "tinted",
+                    "pipelineState": {},
+                    "transparent": false,
+                    "tint": [0.0, 0.0, 1.0, 1.0]
+                }
+            }
+        },
+        "world": [
+            {
+                "position": [0, 0, 10],
+                "components": [
+                    {
+                        "type": "Camera",
+                        "fovY": 90,
+                        "near": 0.1,
+                        "far": 100
+                    },
+                    {
+                        "type": "Free Camera Controller"
+                    }
+                ]
+            },
+            {
+                "position": [0, 0, 0],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "sphere",
+                        "material": "blue"
+                    }
+                ]
+            },
+            {
+                "position": [3, 0, 0],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "sphere",
+                        "material": "red"
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,343 @@
+{
+    "start-scene": "play",
+    "window": {
+        "title": "Blood and Glory - 2D Side Scroller",
+        "size": {
+            "width": 1280,
+            "height": 720
+        },
+        "fullscreen": false
+    },
+    "scene": {
+        "renderer": {
+            "sky": "assets/textures/sky.jpg",
+            "postprocess": "assets/shaders/postprocess/vignette.frag"
+        },
+        "assets": {
+            "shaders": {
+                "tinted": {
+                    "vs": "assets/shaders/tinted.vert",
+                    "fs": "assets/shaders/tinted.frag"
+                },
+                "textured": {
+                    "vs": "assets/shaders/textured.vert",
+                    "fs": "assets/shaders/textured.frag"
+                }
+            },
+            "textures": {
+                "smile": "assets/textures/smile.png",
+                "wood": "assets/textures/wood.jpg",
+                "grass": "assets/textures/grass_ground_d.jpg"
+            },
+            "meshes": {
+                "cube": "assets/models/cube.obj",
+                "sphere": "assets/models/sphere.obj"
+            },
+            "samplers": {
+                "default": {}
+            },
+            "materials": {
+                "ground": {
+                    "type": "textured",
+                    "shader": "textured",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": true
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "transparent": false,
+                    "texture": "grass",
+                    "sampler": "default",
+                    "tint": [0.8, 1.0, 0.8, 1.0]
+                },
+                "player": {
+                    "type": "textured",
+                    "shader": "textured",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": true
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "transparent": false,
+                    "texture": "smile",
+                    "sampler": "default",
+                    "tint": [0.3, 0.6, 1.0, 1.0]
+                },
+                "enemy": {
+                    "type": "tinted",
+                    "shader": "tinted",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": true
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "transparent": false,
+                    "tint": [1.0, 0.2, 0.2, 1.0]
+                },
+                "wall": {
+                    "type": "textured",
+                    "shader": "textured",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": true
+                        },
+                        "depthTesting": {
+                            "enabled": true
+                        }
+                    },
+                    "transparent": false,
+                    "texture": "wood",
+                    "sampler": "default",
+                    "tint": [0.7, 0.5, 0.3, 1.0]
+                }
+            }
+        },
+        "world": [
+            // ========== CAMERA (Fixed side view) ==========
+            {
+                "position": [0, 0, 30],
+                "rotation": [0, 0, 0],
+                "components": [
+                    {
+                        "type": "Camera"
+                    }
+                ]
+            },
+            
+            // ========== PLAYER (Blue sphere with texture) ==========
+            {
+                "position": [-15, 0, 0],
+                "scale": [2, 2, 2],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "sphere",
+                        "material": "player"
+                    },
+                    {
+                        "type": "Player Controller",
+                        "movementSpeed": 10.0,
+                        "rotationSpeed": 0.0,
+                        "sprintMultiplier": 1.5
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 2.0,
+                        "isStatic": false,
+                        "canCollideWithWalls": true,
+                        "canCollideWithEnemies": true
+                    },
+                    {
+                        "type": "Health",
+                        "maxHealth": 100.0,
+                        "currentHealth": 100.0
+                    }
+                ]
+            },
+            
+            // ========== GROUND (Long horizontal platform) ==========
+            {
+                "position": [0, -5, 0],
+                "scale": [60, 1, 10],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "cube",
+                        "material": "ground"
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 60.0,
+                        "isStatic": true
+                    }
+                ]
+            },
+            
+            // ========== LEFT BOUNDARY WALL ==========
+            {
+                "position": [-30, 0, 0],
+                "scale": [2, 10, 10],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "cube",
+                        "material": "wall"
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 6.0,
+                        "isStatic": true
+                    }
+                ]
+            },
+            
+            // ========== RIGHT BOUNDARY WALL ==========
+            {
+                "position": [30, 0, 0],
+                "scale": [2, 10, 10],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "cube",
+                        "material": "wall"
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 6.0,
+                        "isStatic": true
+                    }
+                ]
+            },
+            
+            // ========== ENEMY 1 (Close - Easy target) ==========
+            {
+                "position": [-5, 0, 0],
+                "scale": [1.5, 1.5, 1.5],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "sphere",
+                        "material": "enemy"
+                    },
+                    {
+                        "type": "Enemy AI",
+                        "detectionRange": 20.0,
+                        "loseTargetRange": 25.0,
+                        "moveSpeed": 3.0,
+                        "attackRange": 3.0,
+                        "attackDamage": 10.0,
+                        "attackCooldown": 1.5
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 1.5,
+                        "isStatic": false,
+                        "canCollideWithWalls": true,
+                        "canCollideWithPlayer": true
+                    },
+                    {
+                        "type": "Health",
+                        "maxHealth": 30.0,
+                        "currentHealth": 30.0,
+                        "destroyOnDeath": true
+                    }
+                ]
+            },
+            
+            // ========== ENEMY 2 (Middle position) ==========
+            {
+                "position": [5, 0, 0],
+                "scale": [2, 2, 2],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "sphere",
+                        "material": "enemy"
+                    },
+                    {
+                        "type": "Enemy AI",
+                        "detectionRange": 18.0,
+                        "loseTargetRange": 23.0,
+                        "moveSpeed": 4.0,
+                        "attackRange": 3.5,
+                        "attackDamage": 15.0,
+                        "attackCooldown": 1.2
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 2.0,
+                        "isStatic": false,
+                        "canCollideWithWalls": true,
+                        "canCollideWithPlayer": true
+                    },
+                    {
+                        "type": "Health",
+                        "maxHealth": 50.0,
+                        "currentHealth": 50.0,
+                        "destroyOnDeath": true
+                    }
+                ]
+            },
+            
+            // ========== ENEMY 3 (Far right - Boss) ==========
+            {
+                "position": [20, 0, 0],
+                "scale": [2.5, 2.5, 2.5],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "sphere",
+                        "material": "enemy"
+                    },
+                    {
+                        "type": "Enemy AI",
+                        "detectionRange": 25.0,
+                        "loseTargetRange": 30.0,
+                        "moveSpeed": 2.5,
+                        "attackRange": 4.0,
+                        "attackDamage": 20.0,
+                        "attackCooldown": 2.0
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 2.5,
+                        "isStatic": false,
+                        "canCollideWithWalls": true,
+                        "canCollideWithPlayer": true
+                    },
+                    {
+                        "type": "Health",
+                        "maxHealth": 75.0,
+                        "currentHealth": 75.0,
+                        "destroyOnDeath": true
+                    }
+                ]
+            },
+            
+            // ========== OBSTACLE 1 ==========
+            {
+                "position": [0, 1, 0],
+                "scale": [3, 3, 3],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "cube",
+                        "material": "wall"
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 3.0,
+                        "isStatic": true
+                    }
+                ]
+            },
+            
+            // ========== OBSTACLE 2 ==========
+            {
+                "position": [15, 1, 0],
+                "scale": [2, 4, 2],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "cube",
+                        "material": "wall"
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 3.0,
+                        "isStatic": true
+                    }
+                ]
+            }
+        ]
+    }
+}
