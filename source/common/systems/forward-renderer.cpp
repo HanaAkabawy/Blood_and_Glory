@@ -2,6 +2,9 @@
 #include "../mesh/mesh-utils.hpp"
 #include "../texture/texture-utils.hpp"
 #include <iostream>
+#include "../components/light.hpp"
+#include <string>
+
 
 namespace our {
 
@@ -130,10 +133,12 @@ namespace our {
         CameraComponent* camera = nullptr;
         opaqueCommands.clear();
         transparentCommands.clear();
+          std::vector<LightComponent*> lights;
         for(auto entity : world->getEntities()){
             // If we hadn't found a camera yet, we look for a camera in this entity
             if(!camera) camera = entity->getComponent<CameraComponent>();
             // If this entity has a mesh renderer component
+          
             if(auto meshRenderer = entity->getComponent<MeshRendererComponent>(); meshRenderer){
                 // We construct a command from it
                 RenderCommand command;
@@ -148,6 +153,9 @@ namespace our {
                 // Otherwise, we add it to the opaque command list
                     opaqueCommands.push_back(command);
                 }
+            }
+            if(auto light = entity->getComponent<LightComponent>(); light){
+                lights.push_back(light);
             }
         }
 
@@ -206,7 +214,55 @@ namespace our {
             command.material->setup();
             glm::mat4 transform = VP * command.localToWorld;
             command.material->shader->set("transform", transform);
+            
+
+            command.material->shader->set("model", command.localToWorld);
+            command.material->shader->set("view_projection", VP);
+            command.material->shader->set("model_inverse_transpose",glm::transpose(glm::inverse(command.localToWorld)));
+            command.material->shader->set("camera_position", cameraPosition);
+            
+                int lcount = lights.size();
+            if(lcount > 16){
+                lcount = 16;
+            }
+            command.material->shader->set("light_count", lcount);
+            if(!lights.empty()){
+                for(int i=0;i<lcount;i++){
+                    auto light = lights[i];
+                    std::string prefix = "lights[" + std::to_string(i) + "]";
+                    if(light->lightType == LightType::DIRECTIONAL){
+                        command.material->shader->set(prefix + ".type", 0);
+                        glm::mat4 lightMatrix = light->getOwner()->getLocalToWorldMatrix();
+                        glm::vec3 lightDir = glm::normalize(glm::vec3(lightMatrix*glm::vec4(0,0,-1,0)));
+                        command.material->shader->set(prefix + ".direction", lightDir);
+                        command.material->shader->set(prefix + ".color", light->color);
+                        
+                    } else if(light->lightType == LightType::POINT){
+            command.material->shader->set(prefix + ".type", 1);
+        // Get light position from entity transform
+            glm::vec3 lightPos = glm::vec3(light->getOwner()->getLocalToWorldMatrix() * glm::vec4(0,0,0,1));
+            command.material->shader->set(prefix + ".position", lightPos);
+            command.material->shader->set(prefix + ".color", light->color);
+            command.material->shader->set(prefix + ".attenuation", light->attenuation);
+        
+} else if(light->lightType == LightType::SPOT){
+    command.material->shader->set(prefix + ".type",2);
+    glm::mat4 lightMatrix = light->getOwner()->getLocalToWorldMatrix();
+                                glm::vec3 lightPos = glm::vec3(lightMatrix * glm::vec4(0,0,0,1));
+                                glm::vec3 lightDir = glm::normalize(glm::vec3(lightMatrix * glm::vec4(0, 0, -1, 0)));
+            command.material->shader->set(prefix + ".position", lightPos);
+            command.material->shader->set(prefix + ".direction",lightDir);
+            command.material->shader->set(prefix + ".color", light->color);
+            command.material->shader->set(prefix + ".attenuation", light->attenuation);
+            command.material->shader->set(prefix + ".cone", light->cone);
+         
+                }
+      
+                } 
+            }
+            command.material->shader->set("ambient_light",glm::vec3(0.1f,0.1f,0.1f));
             command.mesh->draw();
+
         }
         
         // If there is a sky material, draw the sky
@@ -249,6 +305,50 @@ namespace our {
             command.material->setup();
             glm::mat4 transform = VP * command.localToWorld;
             command.material->shader->set("transform", transform);
+            command.material->shader->set("model", command.localToWorld);
+            command.material->shader->set("view_projection", VP);
+            command.material->shader->set("model_inverse_transpose",glm::transpose(glm::inverse(command.localToWorld)));
+            command.material->shader->set("camera_position", cameraPosition);
+            int lcount = lights.size();
+            if(lcount > 16){
+                lcount = 16;
+            }
+            command.material->shader->set("light_count", lcount);
+            if(!lights.empty()){
+                for(int i=0;i<lcount;i++){
+                    auto light = lights[i];
+                    std::string prefix = "lights[" + std::to_string(i) + "]";
+                    if(light->lightType == LightType::DIRECTIONAL){
+                        command.material->shader->set(prefix + ".type", 0);
+                        glm::mat4 lightMatrix = light->getOwner()->getLocalToWorldMatrix();
+                        glm::vec3 lightDir = glm::normalize(glm::vec3(lightMatrix*glm::vec4(0,0,-1,0)));
+                        command.material->shader->set(prefix + ".direction", lightDir);
+                        command.material->shader->set(prefix + ".color", light->color);
+                        
+                    } else if(light->lightType == LightType::POINT){
+            command.material->shader->set(prefix + ".type", 1);
+        // Get light position from entity transform
+            glm::vec3 lightPos = glm::vec3(light->getOwner()->getLocalToWorldMatrix() * glm::vec4(0,0,0,1));
+            command.material->shader->set(prefix + ".position", lightPos);
+            command.material->shader->set(prefix + ".color", light->color);
+            command.material->shader->set(prefix + ".attenuation", light->attenuation);
+        
+} else if(light->lightType == LightType::SPOT){
+    command.material->shader->set(prefix + ".type",2);
+    glm::mat4 lightMatrix = light->getOwner()->getLocalToWorldMatrix();
+                                glm::vec3 lightPos = glm::vec3(lightMatrix * glm::vec4(0,0,0,1));
+                                glm::vec3 lightDir = glm::normalize(glm::vec3(lightMatrix * glm::vec4(0, 0, -1, 0)));
+            command.material->shader->set(prefix + ".position", lightPos);
+            command.material->shader->set(prefix + ".direction",lightDir);
+            command.material->shader->set(prefix + ".color", light->color);
+            command.material->shader->set(prefix + ".attenuation", light->attenuation);
+            command.material->shader->set(prefix + ".cone", light->cone);
+         
+                }
+      
+                } 
+            }
+                          command.material->shader->set("ambient_light",glm::vec3(0.1f,0.1f,0.1f));
             command.mesh->draw();
         }
         
