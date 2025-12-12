@@ -92,17 +92,24 @@ namespace our {
                 // (Simplified approach without ray-casting for stability)
                 // Player will just face the direction they're moving when not using mouse
 
-                // Calculate movement direction based on WASD input (relative to camera)
+                // Calculate movement direction based on WASD + EQ input
                 glm::vec3 movementDirection(0.0f);
                 bool keyPressed = false;
 
-                if(keyboard.isPressed(GLFW_KEY_W)) { movementDirection += cameraForward; keyPressed = true; }
-                if(keyboard.isPressed(GLFW_KEY_S)) { movementDirection -= cameraForward; keyPressed = true; }
-                if(keyboard.isPressed(GLFW_KEY_D)) { movementDirection += cameraRight; keyPressed = true; }
-                if(keyboard.isPressed(GLFW_KEY_A)) { movementDirection -= cameraRight; keyPressed = true; }
+                // W/S = Forward/Backward (Z axis in world - toward/away from camera)
+                if(keyboard.isPressed(GLFW_KEY_W)) { movementDirection.z -= 1.0f; keyPressed = true; } // Forward (negative Z)
+                if(keyboard.isPressed(GLFW_KEY_S)) { movementDirection.z += 1.0f; keyPressed = true; } // Backward (positive Z)
+                
+                // A/D = Left/Right (X axis in world)
+                if(keyboard.isPressed(GLFW_KEY_A)) { movementDirection.x -= 1.0f; keyPressed = true; } // Left (negative X)
+                if(keyboard.isPressed(GLFW_KEY_D)) { movementDirection.x += 1.0f; keyPressed = true; } // Right (positive X)
+                
+                // E/Q = Up/Down (Y axis in world)
+                if(keyboard.isPressed(GLFW_KEY_E)) { movementDirection.y += 1.0f; keyPressed = true; } // Up (positive Y)
+                if(keyboard.isPressed(GLFW_KEY_Q)) { movementDirection.y -= 1.0f; keyPressed = true; } // Down (negative Y)
 
                 if(keyPressed) {
-                    std::cout << "🎮 Key pressed! Movement direction before normalize: " 
+                    std::cout << "🎮 Key pressed! Movement direction: " 
                               << movementDirection.x << ", " << movementDirection.y << ", " << movementDirection.z << std::endl;
                 }
 
@@ -116,11 +123,8 @@ namespace our {
                         speed *= controller->sprintMultiplier;
                     }
 
-                    // Apply movement (keeping Z constant for ground-based movement)
-                    float groundDepth = entity->localTransform.position.z;
-                    glm::vec3 oldPos = entity->localTransform.position;
+                    // Apply movement in world space (no camera-relative movement)
                     entity->localTransform.position += movementDirection * speed * deltaTime;
-                    entity->localTransform.position.z = groundDepth; // Lock to Z plane
                     
                     // Debug: Show position
                     static int posCounter = 0;

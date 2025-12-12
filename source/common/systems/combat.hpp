@@ -4,6 +4,7 @@
 #include "../components/health.hpp"
 #include "../components/camera.hpp"
 #include "../components/collision.hpp"
+#include "../components/enemy-ai.hpp"
 
 #include <glm/glm.hpp>
 #include <iostream>
@@ -48,9 +49,14 @@ namespace our {
                 cooldownTimer -= deltaTime;
             }
 
-            // Check for attack input (left mouse button)
+            // Check for attack input (left mouse button OR Enter key)
             auto& mouse = app->getMouse();
-            if(mouse.justPressed(GLFW_MOUSE_BUTTON_LEFT) && cooldownTimer <= 0.0f) {
+            auto& keyboard = app->getKeyboard();
+            bool attackPressed = mouse.justPressed(GLFW_MOUSE_BUTTON_LEFT) || 
+                               keyboard.justPressed(GLFW_KEY_ENTER) ||
+                               keyboard.justPressed(GLFW_KEY_KP_ENTER);
+            
+            if(attackPressed && cooldownTimer <= 0.0f) {
                 performAttack(world);
                 cooldownTimer = attackCooldown;
             }
@@ -70,25 +76,32 @@ namespace our {
             Entity* closestEnemy = nullptr;
             float closestDistance = attackRange;
 
+            std::cout << "🔍 Searching for enemies to attack..." << std::endl;
+            std::cout << "   Player position: (" << playerPos.x << ", " << playerPos.y << ", " << playerPos.z << ")" << std::endl;
+
             for(auto entity : world->getEntities()) {
                 // Skip if it's the player
                 if(entity == player) continue;
+
+                // Check if entity has Enemy AI component (identifies it as an enemy)
+                auto enemyAI = entity->getComponent<EnemyAIComponent>();
+                if(!enemyAI) continue;  // Not an enemy
 
                 // Check if entity has health (is attackable)
                 HealthComponent* health = entity->getComponent<HealthComponent>();
                 if(!health || !health->isAlive) continue;
 
-                // Calculate distance (only in XY plane, ignore Z since everyone is at Z=0)
+                // Calculate distance (only in XZ plane - ground movement)
                 glm::vec3 entityPos = entity->getLocalToWorldMatrix() * glm::vec4(0, 0, 0, 1);
-                glm::vec2 playerPos2D = glm::vec2(playerPos.x, playerPos.y);
-                glm::vec2 entityPos2D = glm::vec2(entityPos.x, entityPos.y);
+                glm::vec2 playerPos2D = glm::vec2(playerPos.x, playerPos.z);
+                glm::vec2 entityPos2D = glm::vec2(entityPos.x, entityPos.z);
                 float distance = glm::length(entityPos2D - playerPos2D);
 
                 // Debug output
-                std::cout << "Distance to enemy: " << distance << " units" << std::endl;
+                std::cout << "   📏 Distance to enemy at (" << entityPos.x << ", " << entityPos.z << "): " << distance << " units" << std::endl;
 
                 // Check if in range and closer than previous closest
-                if(distance < closestDistance) {
+                if(distance <= attackRange && distance < closestDistance) {
                     closestDistance = distance;
                     closestEnemy = entity;
                 }
@@ -98,10 +111,10 @@ namespace our {
             if(closestEnemy) {
                 HealthComponent* health = closestEnemy->getComponent<HealthComponent>();
                 if(health) {
+                    std::cout << "💥 ATTACKING! (Before) Enemy health: " << health->currentHealth << "/" << health->maxHealth << std::endl;
                     health->takeDamage(attackDamage);
+                    std::cout << "💥 ATTACKING! (After) Enemy health: " << health->currentHealth << "/" << health->maxHealth << std::endl;
                     
-                    // Add visual feedback
-                    std::cout << "💥 ATTACK! Enemy health: " << health->currentHealth << "/" << health->maxHealth << std::endl;
                     if(!health->isAlive) {
                         std::cout << "☠️  Enemy DEFEATED!" << std::endl;
                     }

@@ -40,10 +40,10 @@ namespace our {
                 HealthComponent* health = entity->getComponent<HealthComponent>();
                 if(health && !health->isAlive) continue;
 
-                // Get enemy position and calculate 2D distance (XY plane only)
+                // Get enemy position and calculate 2D distance (XZ plane only - ground movement)
                 glm::vec3 enemyPos = entity->getLocalToWorldMatrix() * glm::vec4(0, 0, 0, 1);
-                glm::vec2 playerPos2D = glm::vec2(playerPos.x, playerPos.y);
-                glm::vec2 enemyPos2D = glm::vec2(enemyPos.x, enemyPos.y);
+                glm::vec2 playerPos2D = glm::vec2(playerPos.x, playerPos.z);
+                glm::vec2 enemyPos2D = glm::vec2(enemyPos.x, enemyPos.z);
                 float distanceToPlayer = glm::length(playerPos2D - enemyPos2D);
 
                 // State machine
@@ -107,23 +107,23 @@ namespace our {
 
             // Move towards player
             glm::vec3 direction = glm::normalize(playerPos - enemyPos);
-            direction.z = 0; // Keep on same Z level
+            direction.y = 0; // Keep on same Y level (ground plane is XZ)
             
             if(glm::length(direction) > 0.001f) {
                 direction = glm::normalize(direction);
                 
-                // Store current Z position to maintain ground depth
-                float groundDepth = entity->localTransform.position.z;
+                // Store current Y position to maintain ground level
+                float groundLevel = entity->localTransform.position.y;
                 
                 // Move towards player
                 entity->localTransform.position += direction * ai->moveSpeed * deltaTime;
                 
-                // Lock Z position to ground plane
-                entity->localTransform.position.z = groundDepth;
+                // Lock Y position to ground plane
+                entity->localTransform.position.y = groundLevel;
                 
-                // Rotate to face player
-                float targetYaw = atan2(direction.x, direction.y);
-                entity->localTransform.rotation.z = targetYaw;
+                // Rotate to face player (rotation around Y axis for 3D movement)
+                float targetYaw = atan2(direction.x, direction.z);
+                entity->localTransform.rotation.y = targetYaw;
             }
         }
 
@@ -153,10 +153,10 @@ namespace our {
 
             // Face the player
             glm::vec3 direction = glm::normalize(playerPos - enemyPos);
-            direction.z = 0;
+            direction.y = 0; // Keep on same Y level (ground plane is XZ)
             if(glm::length(direction) > 0.001f) {
-                float targetYaw = atan2(direction.x, direction.y);
-                entity->localTransform.rotation.z = targetYaw;
+                float targetYaw = atan2(direction.x, direction.z);
+                entity->localTransform.rotation.y = targetYaw;
             }
 
             // Update attack timer
@@ -175,8 +175,13 @@ namespace our {
 
             HealthComponent* playerHealth = player->getComponent<HealthComponent>();
             if(playerHealth && playerHealth->isAlive) {
+                std::cout << "👹 ENEMY ATTACK! (Before) Player health: " << playerHealth->currentHealth << "/" << playerHealth->maxHealth << std::endl;
                 playerHealth->takeDamage(ai->attackDamage);
-                // Optional: Add attack animation or sound here
+                std::cout << "👹 ENEMY ATTACK! (After) Player health: " << playerHealth->currentHealth << "/" << playerHealth->maxHealth << std::endl;
+                
+                if(!playerHealth->isAlive) {
+                    std::cout << "💀 PLAYER HAS DIED!" << std::endl;
+                }
             }
         }
     };

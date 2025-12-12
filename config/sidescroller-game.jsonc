@@ -1,0 +1,484 @@
+{
+    "start-scene": "play",
+    "window": {
+        "title": "Blood and Glory - Side Scroller",
+        "size": {
+            "width": 1280,
+            "height": 720
+        },
+        "fullscreen": false
+    },
+    "scene": {
+        "renderer": {
+            "sky": "assets/textures/sky.jpg",
+            "postprocess": "assets/shaders/postprocess/vignette.frag"
+        },
+        "assets": {
+            "shaders": {
+                "tinted": {
+                    "vs": "assets/shaders/tinted.vert",
+                    "fs": "assets/shaders/tinted.frag"
+                },
+                "textured": {
+                    "vs": "assets/shaders/textured.vert",
+                    "fs": "assets/shaders/textured.frag"
+                },
+                "lit": {
+                    "vs": "assets/shaders/lit.vert",
+                    "fs": "assets/shaders/lit.frag"
+                }
+            },
+            "textures": {
+                "grass": "assets/textures/grass_ground_d.jpg",
+                "wood": "assets/textures/wood.jpg",
+                "gladiator_armor": "assets/textures/gladiator_armor.tga",
+                "enemy": "assets/textures/orc.png",
+                "torch_diffuse": "assets/textures/Diffuse.png",
+                "torch_emissive": "assets/textures/Emission.png",
+                "colesseum": "assets/textures/colesseum.jpg"
+            },
+            "meshes": {
+                "cube": "assets/models/cube.obj",
+                "plane": "assets/models/plane.obj",
+                "gladiator": "assets/models/gladiator.obj",
+                "enemy": "assets/models/fatboi.obj",
+                "torch": "assets/models/Torch.obj"
+            },
+            "samplers": {
+                "default": {}
+            },
+            "materials": {
+                "metal": {
+                    "type": "tinted",
+                    "shader": "tinted",
+                    "pipelineState": {
+                        "faceCulling": {"enabled": false},
+                        "depthTesting": {"enabled": true}
+                    },
+                    "tint": [0.45, 0.4, 0.5, 1]
+                },
+                "player_mat": {
+                    "type": "lit",
+                    "shader": "lit",
+                    "pipelineState": {
+                        "faceCulling": {"enabled": false},
+                        "depthTesting": {"enabled": true}
+                    },
+                    "texture": "gladiator_armor",
+                    "sampler": "default",
+                    "tint": [1.0, 1.0, 1.0, 1.0],
+                    "shininess": 16.0
+                },
+                "enemy_mat": {
+                    "type": "lit",
+                    "shader": "lit",
+                    "pipelineState": {
+                        "faceCulling": {"enabled": false},
+                        "depthTesting": {"enabled": true}
+                    },
+                    "texture": "enemy",
+                    "sampler": "default",
+                    "tint": [1.0, 0.8, 0.8, 1.0],
+                    "shininess": 8.0
+                },
+                "ground_mat": {
+                    "type": "lit",
+                    "shader": "lit",
+                    "pipelineState": {
+                        "faceCulling": {"enabled": false},
+                        "depthTesting": {"enabled": true}
+                    },
+                    "texture": "grass",
+                    "sampler": "default",
+                    "tint": [0.8, 0.8, 0.8, 1.0],
+                    "shininess": 4.0
+                },
+                "wall_mat": {
+                    "type": "lit",
+                    "shader": "lit",
+                    "pipelineState": {
+                        "faceCulling": {"enabled": false},
+                        "depthTesting": {"enabled": true}
+                    },
+                    "texture": "wood",
+                    "sampler": "default",
+                    "tint": [0.6, 0.5, 0.4, 1.0],
+                    "shininess": 8.0
+                }
+            }
+        },
+        "world": [
+            // ========== CAMERA - Fixed Side View ==========
+            {
+                "name": "main-camera",
+                "position": [0, 0, 25],
+                "rotation": [0, 0, 0],
+                "components": [
+                    {
+                        "type": "Camera"
+                    }
+                ]
+            },
+
+            // ========== LIGHTING ==========
+            {
+                "name": "sun",
+                "position": [0, 10, 5],
+                "rotation": [-45, 0, 0],
+                "components": [
+                    {
+                        "type": "Light",
+                        "lightType": "directional",
+                        "color": [1.0, 0.95, 0.8]
+                    }
+                ]
+            },
+
+            // ========== PLAYER (GLADIATOR) - Left Side ==========
+            {
+                "name": "player",
+                "position": [-10, -1, 0],
+                "rotation": [0, 0, 0],
+                "scale": [1.5, 1.5, 1.5],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "gladiator",
+                        "material": "player_mat"
+                    },
+                    {
+                        "type": "Player Controller",
+                        "movementSpeed": 6.0,
+                        "rotationSpeed": 12.0,
+                        "smoothRotation": true
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 1.2,
+                        "offset": [0, 1, 0],
+                        "isStatic": false,
+                        "canCollideWithWalls": true,
+                        "canCollideWithPlayer": false,
+                        "canCollideWithEnemies": true
+                    },
+                    {
+                        "type": "Health",
+                        "maxHealth": 100.0,
+                        "currentHealth": 100.0,
+                        "isAlive": true,
+                        "destroyOnDeath": false
+                    }
+                ]
+            },
+
+            // ========== ENEMIES (ORCS) - Spread Across Right Side ==========
+            // Enemy 1 - Close to player
+            {
+                "name": "enemy",
+                "position": [-4, -1, 0],
+                "rotation": [0, 180, 0],
+                "scale": [1.0, 1.0, 1.0],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "enemy",
+                        "material": "enemy_mat"
+                    },
+                    {
+                        "type": "Enemy AI",
+                        "detectionRange": 8.0,
+                        "loseTargetRange": 12.0,
+                        "moveSpeed": 3.0,
+                        "attackRange": 2.0,
+                        "attackDamage": 10.0,
+                        "attackCooldown": 1.0
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 1.5,
+                        "offset": [0, 1, 0],
+                        "isStatic": false,
+                        "canCollideWithWalls": true,
+                        "canCollideWithPlayer": true,
+                        "canCollideWithEnemies": true
+                    },
+                    {
+                        "type": "Health",
+                        "maxHealth": 50.0,
+                        "currentHealth": 50.0,
+                        "isAlive": true,
+                        "destroyOnDeath": true
+                    }
+                ]
+            },
+
+            // Enemy 2 - Center
+            {
+                "name": "enemy",
+                "position": [2, -1, 0],
+                "rotation": [0, 180, 0],
+                "scale": [1.0, 1.0, 1.0],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "enemy",
+                        "material": "enemy_mat"
+                    },
+                    {
+                        "type": "Enemy AI",
+                        "detectionRange": 10.0,
+                        "loseTargetRange": 15.0,
+                        "moveSpeed": 2.5,
+                        "attackRange": 2.5,
+                        "attackDamage": 12.0,
+                        "attackCooldown": 1.2
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 1.5,
+                        "offset": [0, 1, 0],
+                        "isStatic": false,
+                        "canCollideWithWalls": true,
+                        "canCollideWithPlayer": true,
+                        "canCollideWithEnemies": true
+                    },
+                    {
+                        "type": "Health",
+                        "maxHealth": 60.0,
+                        "currentHealth": 60.0,
+                        "isAlive": true,
+                        "destroyOnDeath": true
+                    }
+                ]
+            },
+
+            // Enemy 3 - Right side
+            {
+                "name": "enemy",
+                "position": [8, -1, 0],
+                "rotation": [0, 180, 0],
+                "scale": [1.0, 1.0, 1.0],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "enemy",
+                        "material": "enemy_mat"
+                    },
+                    {
+                        "type": "Enemy AI",
+                        "detectionRange": 12.0,
+                        "loseTargetRange": 18.0,
+                        "moveSpeed": 3.5,
+                        "attackRange": 2.0,
+                        "attackDamage": 8.0,
+                        "attackCooldown": 0.9
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 1.5,
+                        "offset": [0, 1, 0],
+                        "isStatic": false,
+                        "canCollideWithWalls": true,
+                        "canCollideWithPlayer": true,
+                        "canCollideWithEnemies": true
+                    },
+                    {
+                        "type": "Health",
+                        "maxHealth": 40.0,
+                        "currentHealth": 40.0,
+                        "isAlive": true,
+                        "destroyOnDeath": true
+                    }
+                ]
+            },
+
+            // Enemy 4 - Boss at far right
+            {
+                "name": "enemy",
+                "position": [14, -1, 0],
+                "rotation": [0, 180, 0],
+                "scale": [1.3, 1.3, 1.3],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "enemy",
+                        "material": "enemy_mat"
+                    },
+                    {
+                        "type": "Enemy AI",
+                        "detectionRange": 15.0,
+                        "loseTargetRange": 20.0,
+                        "moveSpeed": 2.0,
+                        "attackRange": 2.5,
+                        "attackDamage": 15.0,
+                        "attackCooldown": 1.5
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 2.0,
+                        "offset": [0, 1, 0],
+                        "isStatic": false,
+                        "canCollideWithWalls": true,
+                        "canCollideWithPlayer": true,
+                        "canCollideWithEnemies": true
+                    },
+                    {
+                        "type": "Health",
+                        "maxHealth": 80.0,
+                        "currentHealth": 80.0,
+                        "isAlive": true,
+                        "destroyOnDeath": true
+                    }
+                ]
+            },
+
+            // ========== GROUND ==========
+            {
+                "name": "ground",
+                "position": [0, -2, 0],
+                "rotation": [0, 0, 0],
+                "scale": [40, 1, 20],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "plane",
+                        "material": "ground_mat"
+                    }
+                ]
+            },
+
+            // ========== BOUNDARIES ==========
+            // Left boundary wall
+            {
+                "name": "wall",
+                "position": [-18, 0, 0],
+                "scale": [1, 5, 20],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "cube",
+                        "material": "wall_mat"
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 10.0,
+                        "offset": [0, 0, 0],
+                        "isStatic": true,
+                        "canCollideWithWalls": false,
+                        "canCollideWithPlayer": true,
+                        "canCollideWithEnemies": true
+                    }
+                ]
+            },
+
+            // Right boundary wall
+            {
+                "name": "wall",
+                "position": [20, 0, 0],
+                "scale": [1, 5, 20],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "cube",
+                        "material": "wall_mat"
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 10.0,
+                        "offset": [0, 0, 0],
+                        "isStatic": true,
+                        "canCollideWithWalls": false,
+                        "canCollideWithPlayer": true,
+                        "canCollideWithEnemies": true
+                    }
+                ]
+            },
+
+            // Back wall
+            {
+                "name": "wall",
+                "position": [0, 0, -10],
+                "scale": [40, 5, 1],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "cube",
+                        "material": "wall_mat"
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 20.0,
+                        "offset": [0, 0, 0],
+                        "isStatic": true,
+                        "canCollideWithWalls": false,
+                        "canCollideWithPlayer": true,
+                        "canCollideWithEnemies": true
+                    }
+                ]
+            },
+
+            // Front wall (invisible, just for collision)
+            {
+                "name": "wall",
+                "position": [0, 0, 10],
+                "scale": [40, 5, 1],
+                "components": [
+                    {
+                        "type": "Collision",
+                        "radius": 20.0,
+                        "offset": [0, 0, 0],
+                        "isStatic": true,
+                        "canCollideWithWalls": false,
+                        "canCollideWithPlayer": true,
+                        "canCollideWithEnemies": true
+                    }
+                ]
+            },
+
+            // ========== OBSTACLES ==========
+            {
+                "name": "obstacle",
+                "position": [-2, 0, 3],
+                "scale": [2, 2, 2],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "cube",
+                        "material": "metal"
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 2.0,
+                        "offset": [0, 0, 0],
+                        "isStatic": true,
+                        "canCollideWithWalls": false,
+                        "canCollideWithPlayer": true,
+                        "canCollideWithEnemies": true
+                    }
+                ]
+            },
+
+            {
+                "name": "obstacle",
+                "position": [5, 0, -3],
+                "scale": [1.5, 2.5, 1.5],
+                "components": [
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "cube",
+                        "material": "metal"
+                    },
+                    {
+                        "type": "Collision",
+                        "radius": 1.8,
+                        "offset": [0, 0, 0],
+                        "isStatic": true,
+                        "canCollideWithWalls": false,
+                        "canCollideWithPlayer": true,
+                        "canCollideWithEnemies": true
+                    }
+                ]
+            }
+        ]
+    }
+}

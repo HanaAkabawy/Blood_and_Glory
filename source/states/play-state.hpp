@@ -109,6 +109,16 @@ class Playstate: public our::State {
     }
 
     void onDraw(double deltaTime) override {
+        // Check if player is dead
+        if(player) {
+            our::HealthComponent* playerHealth = player->getComponent<our::HealthComponent>();
+            if(playerHealth && !playerHealth->isAlive) {
+                std::cout << "💀 GAME OVER - Player is dead!" << std::endl;
+                getApp()->changeState("menu");
+                return;
+            }
+        }
+        
         // Here, we just run a bunch of systems to control the world logic
         
         // Movement and control systems
