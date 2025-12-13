@@ -56,7 +56,8 @@ namespace our {
                 CollisionComponent* collisionA = entityA->getComponent<CollisionComponent>();
                 if(!collisionA) continue;
 
-                glm::vec3 posA = entityA->getLocalToWorldMatrix() * glm::vec4(collisionA->offset, 1.0f);
+                // Get world position and add offset (without scaling the offset)
+                glm::vec3 posA = entityA->localTransform.position + collisionA->offset;
 
                 for(size_t j = i + 1; j < entityList.size(); ++j) {
                     Entity* entityB = entityList[j];
@@ -66,7 +67,8 @@ namespace our {
                     // Check if these entities should collide based on their settings
                     if(!shouldCollide(collisionA, collisionB, entityA, entityB)) continue;
 
-                    glm::vec3 posB = entityB->getLocalToWorldMatrix() * glm::vec4(collisionB->offset, 1.0f);
+                    // Get world position and add offset (without scaling the offset)
+                    glm::vec3 posB = entityB->localTransform.position + collisionB->offset;
 
                     // Check collision
                     glm::vec3 penetrationVector;

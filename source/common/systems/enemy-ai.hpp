@@ -112,14 +112,8 @@ namespace our {
             if(glm::length(direction) > 0.001f) {
                 direction = glm::normalize(direction);
                 
-                // Store current Y position to maintain ground level
-                float groundLevel = entity->localTransform.position.y;
-                
-                // Move towards player
+                // Move towards player (only horizontal movement, gravity handles Y)
                 entity->localTransform.position += direction * ai->moveSpeed * deltaTime;
-                
-                // Lock Y position to ground plane
-                entity->localTransform.position.y = groundLevel;
                 
                 // Rotate to face player (rotation around Y axis for 3D movement)
                 float targetYaw = atan2(direction.x, direction.z);
