@@ -4,64 +4,93 @@
 #include "../components/collision.hpp"
 #include "../components/player-controller.hpp"
 #include <glm/glm.hpp>
+#include <unordered_map>
+#include <vector>
+#include <cmath>
+#include <cfloat>
 
 namespace our {
 
-    // Simple gravity system to keep entities on the ground and handle jump physics
+    // Simple gravity system: uses PlayerControllerComponent verticalVelocity for players
+    // and a per-entity vertical velocity for other dynamic entities (enemies) so they
+    // fall the same way without adding new components.
     class GravitySystem {
     private:
-        float groundLevel = 0.0f;  // Y position of the ground surface
-        float gravity = 30.0f;      // Gravity acceleration
-        
+        float gravity = 30.0f; // Gravity acceleration
+        std::unordered_map<Entity*, float> velocities; // per-entity vertical velocities
+        float groundLevelOverride = -FLT_MAX; // optional override for ground top
     public:
-        void setGroundLevel(float level) {
-            groundLevel = level;
-        }
+        void setGravity(float g){ gravity = g; }
+        void setGroundLevel(float level){ groundLevelOverride = level; }
 
         void update(World* world, float deltaTime) {
             if(!world) return;
 
-            for(auto entity : world->getEntities()) {
-                // Only apply gravity to entities with collision that are not static
-                CollisionComponent* collision = entity->getComponent<CollisionComponent>();
-                if(!collision || collision->isStatic) continue;
+            // Collect static supports (platforms/walls) with their top Y and horizontal extents
+            struct Support { Entity* e; float topY; float hx; float hz; };
+            std::vector<Support> supports;
+            float groundSupportTop = -FLT_MAX;
+            for(auto e : world->getEntities()){
+                if(!e) continue;
+                CollisionComponent* c = e->getComponent<CollisionComponent>();
+                if(!c || !c->isStatic) continue;
+                float top = e->localTransform.position.y + 0.5f * e->localTransform.scale.y;
+                float hx = 0.5f * e->localTransform.scale.x;
+                float hz = 0.5f * e->localTransform.scale.z;
+                supports.push_back({e, top, hx, hz});
+                // if this support is the named ground, remember it as a fallback
+                if(e->name.find("ground") != std::string::npos || e->name.find("Ground") != std::string::npos){
+                    groundSupportTop = top;
+                }
+            }
+            // If an override was set via setGroundLevel, use it as the fallback ground
+            if(groundLevelOverride > -FLT_MAX) groundSupportTop = groundLevelOverride;
 
-                // Check if this entity has a player controller (for jump physics)
-                PlayerControllerComponent* playerController = entity->getComponent<PlayerControllerComponent>();
-                
-                // Get current position
+            for(auto entity : world->getEntities()){
+                if(!entity) continue;
+                CollisionComponent* col = entity->getComponent<CollisionComponent>();
+                if(!col || col->isStatic) continue;
+
+                PlayerControllerComponent* pc = entity->getComponent<PlayerControllerComponent>();
                 glm::vec3& pos = entity->localTransform.position;
 
-                if(playerController) {
-                    // Handle player jump physics with vertical velocity
-                    
-                    // Apply gravity to vertical velocity
-                    playerController->verticalVelocity -= gravity * deltaTime;
-                    
-                    // Apply vertical velocity to position
-                    pos.y += playerController->verticalVelocity * deltaTime;
-                    
-                    // Check if on ground
-                    if(pos.y <= groundLevel) {
-                        pos.y = groundLevel;
-                        playerController->verticalVelocity = 0.0f;
-                        playerController->canJump = true;  // Allow jumping again when on ground
+                // Find the highest support top that is below or near the entity AND horizontally overlaps its footprint
+                float bestTop = -FLT_MAX;
+                for(auto &s : supports){
+                    // horizontal overlap test in XZ between entity circle (radius) and support AABB
+                    glm::vec2 entXZ(pos.x, pos.z);
+                    glm::vec2 supportXZ(s.e->localTransform.position.x, s.e->localTransform.position.z);
+                    float dx = std::abs(entXZ.x - supportXZ.x);
+                    float dz = std::abs(entXZ.y - supportXZ.y);
+                    bool overlap = (dx <= (s.hx + col->radius)) && (dz <= (s.hz + col->radius));
+                    float supportTop = s.topY;
+                    if(overlap && supportTop <= pos.y + 0.01f && supportTop > bestTop){
+                        bestTop = supportTop;
+                    }
+                }
+
+                // Determine effective floor: prefer a found support, otherwise fallback to groundSupportTop
+                float effectiveTop = bestTop;
+                if(effectiveTop <= -FLT_MAX) effectiveTop = groundSupportTop;
+
+                if(pc){
+                    if(std::abs(pc->verticalVelocity) > 0.0001f){
+                        pc->verticalVelocity -= gravity * deltaTime;
+                        pos.y += pc->verticalVelocity * deltaTime;
+                        // never fall below the fallback ground
+                        if(groundSupportTop > -FLT_MAX){
+                            float minY = groundSupportTop + col->offset.y + col->radius;
+                            if(pos.y < minY) {
+                                pos.y = minY;
+                                pc->verticalVelocity = 0.0f;
+                            }
+                        }
                     } else {
-                        playerController->canJump = false;  // Can't jump while in air
+                        if(effectiveTop > -FLT_MAX) pos.y = effectiveTop + col->offset.y + col->radius;
                     }
                 } else {
-                    // Non-player entities use simple gravity
-                    if(pos.y < groundLevel) {
-                        pos.y = groundLevel;
-                    } else if(pos.y > groundLevel + 0.1f) {
-                        // If above ground (with small threshold), apply gravity
-                        pos.y -= gravity * deltaTime;
-                        
-                        // Clamp to ground level
-                        if(pos.y < groundLevel) {
-                            pos.y = groundLevel;
-                        }
-                    }
+                    if(effectiveTop > -FLT_MAX) pos.y = effectiveTop + col->offset.y + col->radius;
+                    velocities[entity] = 0.0f;
                 }
             }
         }
