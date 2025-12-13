@@ -226,6 +226,16 @@
                         "mesh": "torch",
                         "material": "torch_mat"
                     }
+                    ,
+                    {
+                        "type": "Collision",
+                        "radius": 0.4,
+                        "offset": [0, 0.6, 0],
+                        "isStatic": true,
+                        "canCollideWithWalls": true,
+                        "canCollideWithPlayer": true,
+                        "canCollideWithEnemies": true
+                    }
                 ]
             },
             {
@@ -242,6 +252,16 @@
                         "type": "Mesh Renderer",
                         "mesh": "torch",
                         "material": "torch_mat"
+                    }
+                    ,
+                    {
+                        "type": "Collision",
+                        "radius": 0.4,
+                        "offset": [0, 0.6, 0],
+                        "isStatic": true,
+                        "canCollideWithWalls": true,
+                        "canCollideWithPlayer": true,
+                        "canCollideWithEnemies": true
                     }
                 ]
             },
@@ -260,6 +280,16 @@
                         "mesh": "torch",
                         "material": "torch_mat"
                     }
+                    ,
+                    {
+                        "type": "Collision",
+                        "radius": 0.4,
+                        "offset": [0, 0.6, 0],
+                        "isStatic": true,
+                        "canCollideWithWalls": true,
+                        "canCollideWithPlayer": true,
+                        "canCollideWithEnemies": true
+                    }
                 ]
             },
             {
@@ -276,6 +306,16 @@
                         "type": "Mesh Renderer",
                         "mesh": "torch",
                         "material": "torch_mat"
+                    }
+                    ,
+                    {
+                        "type": "Collision",
+                        "radius": 0.4,
+                        "offset": [0, 0.6, 0],
+                        "isStatic": true,
+                        "canCollideWithWalls": true,
+                        "canCollideWithPlayer": true,
+                        "canCollideWithEnemies": true
                     }
                 ]
             },
@@ -305,7 +345,7 @@
                         "offset": [0, 2.5, 0],
                         "isStatic": false,
                         "canCollideWithWalls": true,
-                        "canCollideWithPlayer": false,
+                        "canCollideWithPlayer": true,
                         "canCollideWithEnemies": true
                     },
                     {
@@ -322,8 +362,8 @@
             // Enemy 1 - Right side of arena
             {
                 "name": "enemy",
-                "position": [12, 0, 5],
-                "rotation": [0, 180, 0],
+                "position": [0, 2, 0],
+                "rotation": [0, 90, 0],
                 "scale": [1.5, 1.5, 1.5],
                 "components": [
                     {
@@ -343,7 +383,7 @@
                     {
                         "type": "Collision",
                         "radius": 1.5,
-                        "offset": [0, 1.5, 0],
+                        "offset": [0, 2.5, 0],
                         "isStatic": false,
                         "canCollideWithWalls": true,
                         "canCollideWithPlayer": true,
@@ -362,7 +402,7 @@
             // Enemy 2 - Left side of arena
             {
                 "name": "enemy",
-                "position": [-12, 0, 5],
+                "position": [0, 2, 0],
                 "rotation": [0, 90, 0],
                 "scale": [1.5, 1.5, 1.5],
                 "components": [
@@ -383,7 +423,7 @@
                     {
                         "type": "Collision",
                         "radius": 1.5,
-                        "offset": [0, 1.5, 0],
+                        "offset": [0, 2.5, 0],
                         "isStatic": false,
                         "canCollideWithWalls": true,
                         "canCollideWithPlayer": true,
@@ -402,7 +442,7 @@
             // Enemy 3 - Front of arena
             {
                 "name": "enemy",
-                "position": [0, 0, 12],
+                "position": [0, 2, 0],
                 "rotation": [0, -45, 0],
                 "scale": [1.5, 1.5, 1.5],
                 "components": [
@@ -423,7 +463,7 @@
                     {
                         "type": "Collision",
                         "radius": 1.5,
-                        "offset": [0, 1.5, 0],
+                        "offset": [0, 2.5, 0],
                         "isStatic": false,
                         "canCollideWithWalls": true,
                         "canCollideWithPlayer": true,
@@ -442,7 +482,7 @@
             // Enemy 4 - Boss enemy (back of arena)
             {
                 "name": "enemy",
-                "position": [0, 0, -14],
+                "position": [0, 2, 0],
                 "rotation": [0, 0, 0],
                 "scale": [1.8, 1.8, 1.8],
                 "components": [
@@ -463,7 +503,7 @@
                     {
                         "type": "Collision",
                         "radius": 2.0,
-                        "offset": [0, 1.8, 0],
+                        "offset": [0, 2.5, 0],
                         "isStatic": false,
                         "canCollideWithWalls": true,
                         "canCollideWithPlayer": true,
@@ -492,6 +532,7 @@
                         "mesh": "colesseum",
                         "material": "arena_mat"
                     }
+                    
                 ]
             },
 
@@ -506,6 +547,16 @@
                         "type": "Mesh Renderer",
                         "mesh": "plane",
                         "material": "ground_mat"
+                    }
+                    ,
+                    {
+                        "type": "Collision",
+                        "radius": 0.5,
+                        "offset": [0, 0, 0],
+                        "isStatic": true,
+                        "canCollideWithWalls": true,
+                        "canCollideWithPlayer": true,
+                        "canCollideWithEnemies": true
                     }
                 ]
             },
@@ -524,10 +575,10 @@
                     },
                     {
                         "type": "Collision",
-                        "radius": 2.0,
+                        "radius": 0.5,
                         "offset": [0, 2.5, 0],
                         "isStatic": true,
-                        "canCollideWithWalls": false,
+                        "canCollideWithWalls": true,
                         "canCollideWithPlayer": true,
                         "canCollideWithEnemies": true
                     }
@@ -547,10 +598,10 @@
                     },
                     {
                         "type": "Collision",
-                        "radius": 2.0,
+                        "radius": 0.5,
                         "offset": [0, 2.5, 0],
                         "isStatic": true,
-                        "canCollideWithWalls": false,
+                        "canCollideWithWalls": true,
                         "canCollideWithPlayer": true,
                         "canCollideWithEnemies": true
                     }
@@ -570,10 +621,10 @@
                     },
                     {
                         "type": "Collision",
-                        "radius": 2.0,
+                        "radius": 0.5,
                         "offset": [0, 2.5, 0],
                         "isStatic": true,
-                        "canCollideWithWalls": false,
+                        "canCollideWithWalls": true,
                         "canCollideWithPlayer": true,
                         "canCollideWithEnemies": true
                     }
@@ -593,10 +644,10 @@
                     },
                     {
                         "type": "Collision",
-                        "radius": 2.0,
+                        "radius": 0.5,
                         "offset": [0, 2.5, 0],
                         "isStatic": true,
-                        "canCollideWithWalls": false,
+                        "canCollideWithWalls": true,
                         "canCollideWithPlayer": true,
                         "canCollideWithEnemies": true
                     }
@@ -622,7 +673,7 @@
                         "radius": 2.0,
                         "offset": [0, 1.0, 0],
                         "isStatic": true,
-                        "canCollideWithWalls": false,
+                        "canCollideWithWalls": true,
                         "canCollideWithPlayer": true,
                         "canCollideWithEnemies": true
                     }
@@ -645,7 +696,7 @@
                         "radius": 1.8,
                         "offset": [0, 1.25, 0],
                         "isStatic": true,
-                        "canCollideWithWalls": false,
+                        "canCollideWithWalls": true,
                         "canCollideWithPlayer": true,
                         "canCollideWithEnemies": true
                     }

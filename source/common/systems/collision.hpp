@@ -59,9 +59,10 @@ namespace our {
                 if(!e) continue;
                 CollisionComponent* c = e->getComponent<CollisionComponent>();
                 if(!c || !c->isStatic) continue;
-                float top = e->localTransform.position.y + 0.5f * e->localTransform.scale.y;
-                float hx = 0.5f * e->localTransform.scale.x;
-                float hz = 0.5f * e->localTransform.scale.z;
+                // Use collider offset and radius so thin platforms and offsets are handled correctly
+                float top = e->localTransform.position.y + c->offset.y + c->radius;
+                float hx = 0.5f * e->localTransform.scale.x + c->radius;
+                float hz = 0.5f * e->localTransform.scale.z + c->radius;
                 supports.push_back({e, top, hx, hz});
             }
 

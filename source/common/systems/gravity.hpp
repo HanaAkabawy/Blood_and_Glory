@@ -3,6 +3,7 @@
 #include "../ecs/world.hpp"
 #include "../components/collision.hpp"
 #include "../components/player-controller.hpp"
+#include "../components/enemy-ai.hpp"
 #include <glm/glm.hpp>
 #include <unordered_map>
 #include <vector>
@@ -34,9 +35,10 @@ namespace our {
                 if(!e) continue;
                 CollisionComponent* c = e->getComponent<CollisionComponent>();
                 if(!c || !c->isStatic) continue;
-                float top = e->localTransform.position.y + 0.5f * e->localTransform.scale.y;
-                float hx = 0.5f * e->localTransform.scale.x;
-                float hz = 0.5f * e->localTransform.scale.z;
+                // Use collider offset and radius so thin platforms and offsets are handled consistently
+                float top = e->localTransform.position.y + c->offset.y + c->radius;
+                float hx = 0.5f * e->localTransform.scale.x + c->radius;
+                float hz = 0.5f * e->localTransform.scale.z + c->radius;
                 supports.push_back({e, top, hx, hz});
                 // if this support is the named ground, remember it as a fallback
                 if(e->name.find("ground") != std::string::npos || e->name.find("Ground") != std::string::npos){
@@ -71,7 +73,12 @@ namespace our {
 
                 // Determine effective floor: prefer a found support, otherwise fallback to groundSupportTop
                 float effectiveTop = bestTop;
-                if(effectiveTop <= -FLT_MAX) effectiveTop = groundSupportTop;
+                if(entity->getComponent<EnemyAIComponent>()){
+                    // For enemies, force them to use the global ground level so they line up with the player
+                    effectiveTop = groundSupportTop;
+                } else {
+                    if(effectiveTop <= -FLT_MAX) effectiveTop = groundSupportTop;
+                }
 
                 if(pc){
                     if(std::abs(pc->verticalVelocity) > 0.0001f){
@@ -83,6 +90,22 @@ namespace our {
                             if(pos.y < minY) {
                                 pos.y = minY;
                                 pc->verticalVelocity = 0.0f;
+                            }
+                        }
+                    } else {
+                        if(effectiveTop > -FLT_MAX) pos.y = effectiveTop + col->offset.y + col->radius;
+                    }
+                } else if(entity->getComponent<EnemyAIComponent>()){
+                    // Give enemies per-entity gravity similar to the player
+                    float &vel = velocities[entity];
+                    if(std::abs(vel) > 0.0001f){
+                        vel -= gravity * deltaTime;
+                        pos.y += vel * deltaTime;
+                        if(groundSupportTop > -FLT_MAX){
+                            float minY = groundSupportTop + col->offset.y + col->radius;
+                            if(pos.y < minY){
+                                pos.y = minY;
+                                vel = 0.0f;
                             }
                         }
                     } else {
