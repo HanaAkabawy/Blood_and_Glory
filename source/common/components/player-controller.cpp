@@ -10,5 +10,6 @@ namespace our {
         rotationSpeed = data.value("rotationSpeed", rotationSpeed);
         sprintMultiplier = data.value("sprintMultiplier", sprintMultiplier);
         smoothRotation = data.value("smoothRotation", smoothRotation);
+        jumpForce = data.value("jumpForce", jumpForce);
     }
 }

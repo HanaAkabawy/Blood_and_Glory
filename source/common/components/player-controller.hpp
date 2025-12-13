@@ -14,6 +14,11 @@ namespace our {
         float rotationSpeed = 10.0f;       // How fast the player rotates to face movement direction
         float sprintMultiplier = 2.0f;     // Speed multiplier when shift is held
         bool smoothRotation = true;        // Enable smooth rotation towards movement direction
+        
+        // Jump parameters
+        float jumpForce = 15.0f;           // Initial upward velocity when jumping
+        bool canJump = true;               // Whether the player can currently jump (on ground)
+        float verticalVelocity = 0.0f;     // Current vertical velocity for jump physics
 
         // The ID of this component type is "Player Controller"
         static std::string getID() { return "Player Controller"; }

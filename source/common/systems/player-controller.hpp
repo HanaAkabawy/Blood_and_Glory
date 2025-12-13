@@ -49,36 +49,8 @@ namespace our {
             // If no camera exists, we can't determine view direction
             if(!camera || !cameraEntity) return;
 
-            // Get camera's forward and right vectors
-            glm::mat4 cameraTransform = cameraEntity->getLocalToWorldMatrix();
-            glm::vec3 cameraForward = glm::normalize(glm::vec3(cameraTransform * glm::vec4(0, 0, -1, 0)));
-            glm::vec3 cameraRight = glm::normalize(glm::vec3(cameraTransform * glm::vec4(1, 0, 0, 0)));
-            
-            // Project forward and right onto XY plane (ignore Z component)
-            cameraForward.z = 0;
-            cameraRight.z = 0;
-            
-            // Normalize again after projection, or use default axes if projection resulted in zero
-            if(glm::length(cameraForward) > 0.001f) {
-                cameraForward = glm::normalize(cameraForward);
-            } else {
-                // If camera is looking straight at XY plane, use Y as forward
-                cameraForward = glm::vec3(0, 1, 0);
-            }
-            
-            if(glm::length(cameraRight) > 0.001f) {
-                cameraRight = glm::normalize(cameraRight);
-            } else {
-                // If camera right is perpendicular to XY plane, use X as right
-                cameraRight = glm::vec3(1, 0, 0);
-            }
-            
-            // Debug output to see what's happening
-            static int debugCounter = 0;
-            if(debugCounter++ % 60 == 0) { // Print once per second (assuming 60fps)
-                std::cout << "Camera forward: " << cameraForward.x << ", " << cameraForward.y << ", " << cameraForward.z << std::endl;
-                std::cout << "Camera right: " << cameraRight.x << ", " << cameraRight.y << ", " << cameraRight.z << std::endl;
-            }
+            // Movement is in world space - no camera-relative movement needed
+            // W/S = Forward/Backward on Z axis, A/D = Left/Right on X axis, E/Q = Up/Down on Y axis
 
             // Update all entities with PlayerControllerComponent
             try {
@@ -88,11 +60,14 @@ namespace our {
                     PlayerControllerComponent* controller = entity->getComponent<PlayerControllerComponent>();
                     if(!controller) continue;
 
-                // Handle mouse left-click to set facing direction toward mouse cursor
-                // (Simplified approach without ray-casting for stability)
-                // Player will just face the direction they're moving when not using mouse
+                // Handle jump input (SPACE key)
+                if(keyboard.justPressed(GLFW_KEY_SPACE) && controller->canJump) {
+                    controller->verticalVelocity = controller->jumpForce;
+                    controller->canJump = false;  // Prevent double jump
+                    std::cout << "🦘 Player jumped! Velocity: " << controller->jumpForce << std::endl;
+                }
 
-                // Calculate movement direction based on WASD + EQ input
+                // Calculate movement direction based on WASD input (removed E/Q for vertical movement)
                 glm::vec3 movementDirection(0.0f);
                 bool keyPressed = false;
 
@@ -103,17 +78,8 @@ namespace our {
                 // A/D = Left/Right (X axis in world)
                 if(keyboard.isPressed(GLFW_KEY_A)) { movementDirection.x -= 1.0f; keyPressed = true; } // Left (negative X)
                 if(keyboard.isPressed(GLFW_KEY_D)) { movementDirection.x += 1.0f; keyPressed = true; } // Right (positive X)
-                
-                // E/Q = Up/Down (Y axis in world)
-                if(keyboard.isPressed(GLFW_KEY_E)) { movementDirection.y += 1.0f; keyPressed = true; } // Up (positive Y)
-                if(keyboard.isPressed(GLFW_KEY_Q)) { movementDirection.y -= 1.0f; keyPressed = true; } // Down (negative Y)
 
-                if(keyPressed) {
-                    std::cout << "🎮 Key pressed! Movement direction: " 
-                              << movementDirection.x << ", " << movementDirection.y << ", " << movementDirection.z << std::endl;
-                }
-
-                // Normalize movement direction if any key is pressed
+                // Normalize movement direction if any key is pressed (only horizontal movement)
                 if(glm::length(movementDirection) > 0.001f) {
                     movementDirection = glm::normalize(movementDirection);
 
@@ -123,22 +89,16 @@ namespace our {
                         speed *= controller->sprintMultiplier;
                     }
 
-                    // Apply movement in world space (no camera-relative movement)
-                    entity->localTransform.position += movementDirection * speed * deltaTime;
-                    
-                    // Debug: Show position
-                    static int posCounter = 0;
-                    if(posCounter++ % 30 == 0) { // Every half second
-                        std::cout << "📍 Player position: (" << entity->localTransform.position.x 
-                                  << ", " << entity->localTransform.position.y 
-                                  << ", " << entity->localTransform.position.z << ")" << std::endl;
-                    }
+                    // Apply horizontal movement only (Y is handled by gravity/jump system)
+                    glm::vec3 horizontalMovement = movementDirection * speed * deltaTime;
+                    entity->localTransform.position.x += horizontalMovement.x;
+                    entity->localTransform.position.z += horizontalMovement.z;
 
                     // Rotate player to face movement direction (only if not using mouse to rotate)
                     if(!mouse.isPressed(GLFW_MOUSE_BUTTON_LEFT)) {
                         if(controller->smoothRotation) {
-                            // Calculate target rotation (yaw only) - using Y axis since we're in XY plane
-                            float targetYaw = atan2(movementDirection.x, movementDirection.y);
+                            // Calculate target rotation (yaw only) - using XZ plane for ground movement
+                            float targetYaw = atan2(movementDirection.x, movementDirection.z);
                             float currentYaw = entity->localTransform.rotation.y;
 
                             // Smoothly interpolate rotation
@@ -156,8 +116,8 @@ namespace our {
                                 entity->localTransform.rotation.y += glm::sign(yawDiff) * rotationAmount;
                             }
                         } else {
-                            // Instant rotation - using Y axis since we're in XY plane
-                            entity->localTransform.rotation.y = atan2(movementDirection.x, movementDirection.y);
+                            // Instant rotation - using XZ plane for ground movement
+                            entity->localTransform.rotation.y = atan2(movementDirection.x, movementDirection.z);
                         }
                     }
                 }

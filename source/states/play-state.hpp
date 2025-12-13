@@ -8,6 +8,7 @@
 #include <systems/orbit-camera-controller.hpp>
 #include <systems/player-controller.hpp>
 #include <systems/collision.hpp>
+#include <systems/gravity.hpp>
 #include <systems/combat.hpp>
 #include <systems/enemy-ai.hpp>
 #include <systems/movement.hpp>
@@ -30,6 +31,7 @@ class Playstate: public our::State {
     our::OrbitCameraControllerSystem orbitCameraController;
     our::PlayerControllerSystem playerController;
     our::CollisionSystem collisionSystem;
+    our::GravitySystem gravitySystem;
     our::CombatSystem combatSystem;
     our::EnemyAISystem enemyAISystem;
     our::MovementSystem movementSystem;
@@ -92,6 +94,9 @@ class Playstate: public our::State {
             std::cout << "⚠️  Warning: No player entity found!" << std::endl;
         }
         
+        // Set gravity ground level (ground plane is at Y=-1.5, characters stand at Y=0)
+        gravitySystem.setGroundLevel(0.0f);
+        
         // Then we initialize the renderer
         auto size = getApp()->getFrameBufferSize();
         renderer.initialize(size, config["renderer"]);
@@ -124,6 +129,9 @@ class Playstate: public our::State {
         // Movement and control systems
         movementSystem.update(&world, (float)deltaTime);
         playerController.update(&world, (float)deltaTime);
+        
+        // Apply gravity to keep entities on ground
+        gravitySystem.update(&world, (float)deltaTime);
         
         // Apply collision resolution after player movement
         collisionSystem.update(&world, (float)deltaTime);
