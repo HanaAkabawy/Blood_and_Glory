@@ -39,6 +39,9 @@ class Playstate: public our::State {
     our::Entity* player = nullptr;  // Reference to the player entity
     int postprocessIndex = 0;
     std::vector<std::string> postprocessShaders;
+    // Victory tracking: when true and timer expires we return to menu
+    bool victory = false;
+    float victoryTimer = 0.0f;
 
     void onInitialize() override {
         // First of all, we get the scene configuration from the app config
@@ -106,11 +109,22 @@ class Playstate: public our::State {
         postprocessIndex = 0;
         for(size_t i = 0; i < postprocessShaders.size(); ++i) if(postprocessShaders[i] == initial) postprocessIndex = (int)i;
         renderer.setPostprocessShader(postprocessShaders[postprocessIndex]);
+        // Reset victory state when entering play so replay works correctly
+        victory = false;
+        victoryTimer = 0.0f;
     }
 
     void onImmediateGui() override {
         // Draw health UI using ImGui
         drawHealthUI();
+        // Victory popup
+        if(victory){
+            ImGui::SetNextWindowPos(ImVec2(400, 100), ImGuiCond_Always);
+            ImGui::Begin("Victory", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
+            ImGui::Text(" You Wooooooooon!");
+            ImGui::Text("Returning to menu in %.1f seconds", victoryTimer);
+            ImGui::End();
+        }
     }
 
     void onDraw(double deltaTime) override {
@@ -151,6 +165,31 @@ class Playstate: public our::State {
         
         // And finally we use the renderer system to draw the scene
         renderer.render(&world);
+
+        // Check win condition: if player is alive and all enemies are dead announce victory
+        if(!victory){
+            int aliveEnemies = 0;
+            for(auto entity : world.getEntities()){
+                auto enemyAI = entity->getComponent<our::EnemyAIComponent>();
+                if(enemyAI){
+                    auto h = entity->getComponent<our::HealthComponent>();
+                    if(h && h->isAlive) aliveEnemies++;
+                }
+            }
+            auto playerHealth = player ? player->getComponent<our::HealthComponent>() : nullptr;
+            if(playerHealth && playerHealth->isAlive && aliveEnemies == 0){
+                std::cout << "🎉 Player wins! Returning to menu..." << std::endl;
+                victory = true;
+                victoryTimer = 2.0f; // seconds before returning to menu
+            }
+        } else {
+            // Countdown and return to menu when timer expires
+            victoryTimer -= (float)deltaTime;
+            if(victoryTimer <= 0.0f){
+                getApp()->changeState("menu");
+                return;
+            }
+        }
 
         // Get a reference to the keyboard object
         auto& keyboard = getApp()->getKeyboard();
