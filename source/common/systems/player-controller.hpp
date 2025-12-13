@@ -60,7 +60,7 @@ namespace our {
                     PlayerControllerComponent* controller = entity->getComponent<PlayerControllerComponent>();
                     if(!controller) continue;
 
-                // Handle jump input (SPACE key)
+                // Handle jump input (SPACE key only)
                 if(keyboard.justPressed(GLFW_KEY_SPACE) && controller->canJump) {
                     controller->verticalVelocity = controller->jumpForce;
                     controller->canJump = false;  // Prevent double jump

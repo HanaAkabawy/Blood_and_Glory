@@ -90,10 +90,14 @@ namespace our {
                             if(pos.y < minY) {
                                 pos.y = minY;
                                 pc->verticalVelocity = 0.0f;
+                                pc->canJump = true;
                             }
                         }
                     } else {
-                        if(effectiveTop > -FLT_MAX) pos.y = effectiveTop + col->offset.y + col->radius;
+                        if(effectiveTop > -FLT_MAX) {
+                            pos.y = effectiveTop + col->offset.y + col->radius;
+                            pc->canJump = true;
+                        }
                     }
                 } else if(entity->getComponent<EnemyAIComponent>()){
                     // Give enemies per-entity gravity similar to the player
