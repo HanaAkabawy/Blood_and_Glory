@@ -60,8 +60,13 @@ namespace our {
                     PlayerControllerComponent* controller = entity->getComponent<PlayerControllerComponent>();
                     if(!controller) continue;
 
-                // Handle jump input (SPACE key only)
-                if(keyboard.justPressed(GLFW_KEY_SPACE) && controller->canJump) {
+                // Debug: log SPACE key states and canJump to diagnose jump issues
+                std::cout << "[DEBUG] SPACE isPressed=" << keyboard.isPressed(GLFW_KEY_SPACE)
+                          << " justPressed=" << keyboard.justPressed(GLFW_KEY_SPACE)
+                          << " canJump=" << controller->canJump << std::endl;
+
+                // Handle jump input (SPACE key only). Accept initial press or held key as fallback.
+                if((keyboard.justPressed(GLFW_KEY_SPACE) || keyboard.isPressed(GLFW_KEY_SPACE)) && controller->canJump) {
                     controller->verticalVelocity = controller->jumpForce;
                     controller->canJump = false;  // Prevent double jump
                     std::cout << "🦘 Player jumped! Velocity: " << controller->jumpForce << std::endl;
